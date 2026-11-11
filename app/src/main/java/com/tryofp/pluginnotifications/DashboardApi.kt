@@ -1,4 +1,4 @@
-package com.tryofp.pluginnotifications
+package com.tryoplugin.dashbor
 
 import org.json.JSONObject
 import java.net.HttpURLConnection
