@@ -1,4 +1,4 @@
-package com.tryofp.pluginnotifications
+package com.tryoplugin.dashbor
 
 import android.Manifest
 import android.content.pm.PackageManager
