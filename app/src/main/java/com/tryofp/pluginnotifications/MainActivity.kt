@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadMoreButton: Button
     private lateinit var trackerTab: Button
     private lateinit var feedbackTab: Button
+    private lateinit var usageTab: Button
     private lateinit var hubCountView: TextView
     private lateinit var feedbackCountView: TextView
 
@@ -183,11 +184,14 @@ class MainActivity : AppCompatActivity() {
         }
         trackerTab = button("Log Tracker")
         feedbackTab = button("Feedback")
-        tabs.addView(trackerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(5) })
-        tabs.addView(feedbackTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(5) })
+        usageTab = button("Firestore Usage")
+        tabs.addView(trackerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(3) })
+        tabs.addView(feedbackTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(3); marginEnd = dp(3) })
+        tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(3) })
         root.addView(tabs)
         trackerTab.setOnClickListener { switchTab("tracker") }
         feedbackTab.setOnClickListener { switchTab("feedback") }
+        usageTab.setOnClickListener { switchTab("usage") }
 
         val toolbar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -197,7 +201,7 @@ class MainActivity : AppCompatActivity() {
         toolbar.addView(logStatus, LinearLayout.LayoutParams(0, dp(38), 1f))
         val refresh = button("Refresh")
         toolbar.addView(refresh, LinearLayout.LayoutParams(dp(88), dp(38)))
-        refresh.setOnClickListener { loadLogs(true) }
+        refresh.setOnClickListener { if (selectedTab == "usage") loadUsage() else loadLogs(true) }
         root.addView(toolbar)
 
         val scroll = ScrollView(this).apply {
@@ -256,13 +260,75 @@ class MainActivity : AppCompatActivity() {
         if (selectedTab == tab) return
         selectedTab = tab
         updateTabButtons()
-        loadLogs(true)
+        if (tab == "usage") loadUsage() else loadLogs(true)
     }
 
     private fun updateTabButtons() {
-        if (!::trackerTab.isInitialized || !::feedbackTab.isInitialized) return
+        if (!::trackerTab.isInitialized || !::feedbackTab.isInitialized || !::usageTab.isInitialized) return
         trackerTab.background = rounded(if (selectedTab == "tracker") Color.rgb(37, 99, 235) else panel, 10)
         feedbackTab.background = rounded(if (selectedTab == "feedback") Color.rgb(37, 99, 235) else panel, 10)
+        usageTab.background = rounded(if (selectedTab == "usage") Color.rgb(37, 99, 235) else panel, 10)
+    }
+
+    private fun loadUsage() {
+        if (loading) return
+        val key = dashboardKey ?: return
+        loading = true
+        logStatus.text = "Mengambil metrik Cloud Monitoring…"
+        loadMoreButton.visibility = View.GONE
+        DashboardApi.loadFirestoreUsage(key) { result, error ->
+            runOnUiThread {
+                loading = false
+                logContainer.removeAllViews()
+                if (error != null || result?.optString("status") != "success") {
+                    logStatus.text = "Firestore Usage tidak tersedia"
+                    addEmptyState(error ?: result?.optString("message", "Gagal mengambil metrik.") ?: "Gagal mengambil metrik.")
+                    return@runOnUiThread
+                }
+
+                val limits = result.optJSONObject("limits")
+                val reads = result.optLong("reads", 0L)
+                val writes = result.optLong("writes", 0L)
+                val deletes = result.optLong("deletes", 0L)
+                val readLimit = limits?.optLong("reads", 50000L) ?: 50000L
+                val writeLimit = limits?.optLong("writes", 20000L) ?: 20000L
+                val deleteLimit = limits?.optLong("deletes", 20000L) ?: 20000L
+
+                logStatus.text = "Pemakaian kuota harian • " + result.optString("period", "Pacific Time")
+                logContainer.addView(usageMetricCard("DOCUMENT READS", reads, readLimit))
+                logContainer.addView(usageMetricCard("DOCUMENT WRITES", writes, writeLimit))
+                logContainer.addView(usageMetricCard("DOCUMENT DELETES", deletes, deleteLimit))
+                logContainer.addView(text("Terakhir diperbarui: " + formatTime(result.optString("updatedAt", "")), 11f, muted).apply {
+                    setPadding(dp(4), dp(10), dp(4), dp(3))
+                })
+                logContainer.addView(text(result.optString("note", "Metrik dapat mengalami keterlambatan."), 11f, muted).apply {
+                    setPadding(dp(4), dp(2), dp(4), dp(12))
+                })
+            }
+        }
+    }
+
+    private fun usageMetricCard(label: String, used: Long, limit: Long): View {
+        val safeLimit = limit.coerceAtLeast(1L)
+        val percent = ((used.toDouble() / safeLimit.toDouble()) * 100.0).toInt().coerceIn(0, 100)
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(13), dp(14), dp(13))
+            background = rounded(panel, 12)
+            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) }
+        }
+        card.addView(text(label, 11f, muted, true))
+        card.addView(text(String.format(Locale.US, "%,d / %,d", used, limit), 21f, white, true))
+        val bar = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = percent
+            progressTintList = android.content.res.ColorStateList.valueOf(
+                if (percent >= 90) Color.rgb(239, 68, 68) else if (percent >= 75) Color.rgb(245, 158, 11) else Color.rgb(34, 197, 94)
+            )
+        }
+        card.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(9) })
+        card.addView(text("$" + percent + "% dari kuota harian", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
+        return card
     }
 
     private fun loadLogs(reset: Boolean) {
