@@ -16,7 +16,7 @@ object FcmRegistration {
             var connection: HttpURLConnection? = null
             try {
                 val agent = "Android/" + Build.VERSION.RELEASE + " " + Build.MODEL
-                val payload = """{"Type":"FcmRegister","Token":${jsonString(token)},"UserAgent":${jsonString(agent)},"Platform":"android","AppVersion":"1.0.0"}"""
+                val payload = """{"Type":"FcmRegister","Token":${jsonString(token)},"UserAgent":${jsonString(agent)},"Platform":"android","AppVersion":"2.0.0"}"""
                 connection = (URL(ENDPOINT).openConnection() as HttpURLConnection).apply {
                     requestMethod = "POST"
                     connectTimeout = 15000
