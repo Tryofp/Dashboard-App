@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.Executors
 
 object DashboardApi {
-    private const val ENDPOINT = "https://script.google.com/macros/s/AKfycbxJzU3MiL_o9PjkF4h-prSw-P8vLVfJqGFXM7pFJOPzIzJXaGmu6z6oK0oJl54a6bQy0Q/exec"
+    private const val ENDPOINT = "https://script.google.com/macros/s/AKfycbzGeuYqqiwf0ZJcbevv6ra7gTEAzK0YO9h5g2-pWQB_TG06dbIvFiTdPHJ0w2Uf61kQBw/exec"
     private val executor = Executors.newSingleThreadExecutor()
 
     fun authenticate(key: String, callback: (JSONObject?, String?) -> Unit) {
