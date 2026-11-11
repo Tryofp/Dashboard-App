@@ -1,4 +1,4 @@
-package com.tryofp.pluginnotifications
+package com.tryoplugin.dashbor
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
