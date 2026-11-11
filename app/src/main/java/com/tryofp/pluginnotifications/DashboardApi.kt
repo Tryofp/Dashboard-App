@@ -26,6 +26,15 @@ object DashboardApi {
         )
     }
 
+    fun loadFirestoreUsage(key: String, callback: (JSONObject?, String?) -> Unit) {
+        post(
+            JSONObject()
+                .put("Type", "DashboardFirestoreUsage")
+                .put("Key", key),
+            callback
+        )
+    }
+
     private fun post(payload: JSONObject, callback: (JSONObject?, String?) -> Unit) {
         executor.execute {
             var connection: HttpURLConnection? = null
