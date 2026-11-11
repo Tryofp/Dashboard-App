@@ -7,6 +7,8 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
@@ -39,6 +41,15 @@ class MainActivity : AppCompatActivity() {
     private var total = 0
     private var hasMore = false
     private var loading = false
+    private val usageRefreshHandler = Handler(Looper.getMainLooper())
+    private val usageRefreshRunnable = object : Runnable {
+        override fun run() {
+            if (selectedTab == "usage" && !isFinishing) {
+                loadUsage()
+                usageRefreshHandler.postDelayed(this, 5 * 60 * 1000L)
+            }
+        }
+    }
     private lateinit var root: LinearLayout
     private lateinit var notificationStatus: TextView
     private lateinit var logContainer: LinearLayout
@@ -60,6 +71,11 @@ class MainActivity : AppCompatActivity() {
         refreshAndRegisterToken()
         dashboardKey = DashboardKeyStore.read(this)
         if (dashboardKey.isNullOrBlank()) showLogin() else showDashboard()
+    }
+
+    override fun onDestroy() {
+        usageRefreshHandler.removeCallbacks(usageRefreshRunnable)
+        super.onDestroy()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
@@ -260,7 +276,13 @@ class MainActivity : AppCompatActivity() {
         if (selectedTab == tab) return
         selectedTab = tab
         updateTabButtons()
-        if (tab == "usage") loadUsage() else loadLogs(true)
+        usageRefreshHandler.removeCallbacks(usageRefreshRunnable)
+        if (tab == "usage") {
+            loadUsage()
+            usageRefreshHandler.postDelayed(usageRefreshRunnable, 5 * 60 * 1000L)
+        } else {
+            loadLogs(true)
+        }
     }
 
     private fun updateTabButtons() {
