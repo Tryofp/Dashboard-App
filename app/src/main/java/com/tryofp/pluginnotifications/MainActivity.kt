@@ -43,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadMoreButton: Button
     private lateinit var trackerTab: Button
     private lateinit var feedbackTab: Button
+    private lateinit var hubCountView: TextView
+    private lateinit var feedbackCountView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -160,8 +162,12 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, dp(18), 0, dp(16))
         }
-        stats.addView(statCard("TOTAL HUB LOAD", "—"), LinearLayout.LayoutParams(0, dp(76), 1f).apply { marginEnd = dp(6) })
-        stats.addView(statCard("TOTAL FEEDBACK", "—"), LinearLayout.LayoutParams(0, dp(76), 1f).apply { marginStart = dp(6) })
+        val hubStat = statCard("TOTAL HUB LOAD", "…")
+        val feedbackStat = statCard("TOTAL FEEDBACK", "…")
+        hubCountView = hubStat.findViewWithTag("stat_value_TOTAL HUB LOAD")
+        feedbackCountView = feedbackStat.findViewWithTag("stat_value_TOTAL FEEDBACK")
+        stats.addView(hubStat, LinearLayout.LayoutParams(0, dp(76), 1f).apply { marginEnd = dp(6) })
+        stats.addView(feedbackStat, LinearLayout.LayoutParams(0, dp(76), 1f).apply { marginStart = dp(6) })
         root.addView(stats)
 
         val tabs = LinearLayout(this).apply {
@@ -204,6 +210,7 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(root)
         updateTabButtons()
+        loadStatCounts()
         loadLogs(true)
     }
 
@@ -217,6 +224,24 @@ class MainActivity : AppCompatActivity() {
         card.addView(text(label, 10f, muted, true))
         card.addView(text(value, 22f, white, true).apply { tag = "stat_value_${label}" })
         return card
+    }
+
+    private fun loadStatCounts() {
+        val key = dashboardKey ?: return
+        DashboardApi.loadLogs(key, "tracker", 0, 1) { result, _ ->
+            runOnUiThread {
+                if (result?.optString("status") == "success" && ::hubCountView.isInitialized) {
+                    hubCountView.text = result.optInt("total", 0).toString()
+                }
+            }
+        }
+        DashboardApi.loadLogs(key, "feedback", 0, 1) { result, _ ->
+            runOnUiThread {
+                if (result?.optString("status") == "success" && ::feedbackCountView.isInitialized) {
+                    feedbackCountView.text = result.optInt("total", 0).toString()
+                }
+            }
+        }
     }
 
     private fun switchTab(tab: String) {
@@ -253,6 +278,8 @@ class MainActivity : AppCompatActivity() {
                     return@runOnUiThread
                 }
                 total = result.optInt("total", 0)
+                if (selectedTab == "tracker" && ::hubCountView.isInitialized) hubCountView.text = total.toString()
+                if (selectedTab == "feedback" && ::feedbackCountView.isInitialized) feedbackCountView.text = total.toString()
                 val records = result.optJSONArray("records")
                 var added = 0
                 if (records != null) {
