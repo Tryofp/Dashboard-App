@@ -317,14 +317,14 @@ class MainActivity : AppCompatActivity() {
                 val deleteLimit = limits?.optLong("deletes", 20000L) ?: 20000L
 
                 logStatus.text = "Estimasi penggunaan • " + result.optString("period", "WIB")
-                logContainer.addView(usageMetricCard("DOCUMENT READS", reads, readLimit))
-                logContainer.addView(usageMetricCard("DOCUMENT WRITES", writes, writeLimit))
-                logContainer.addView(usageMetricCard("DOCUMENT DELETES", deletes, deleteLimit))
+                logContainer.addView(usageMetricCard("ESTIMATED DOCUMENT READS", reads, readLimit))
+                logContainer.addView(usageMetricCard("ESTIMATED DOCUMENT WRITES", writes, writeLimit))
+                logContainer.addView(usageMetricCard("ESTIMATED DOCUMENT DELETES", deletes, deleteLimit))
                 val storage = result.optJSONObject("storage")
                 if (storage != null && storage.optBoolean("available", true)) {
                     logContainer.addView(usageStorageCard(storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L))
                 } else {
-                    logContainer.addView(text("DATABASE STORAGE\nTidak tersedia pada mode estimasi tanpa Cloud Monitoring.", 12f, muted).apply {
+                    logContainer.addView(text("DATABASE STORAGE\nTidak dihitung dalam mode estimasi aplikasi.", 12f, muted).apply {
                         setPadding(dp(4), dp(10), dp(4), dp(12))
                     })
                 }
@@ -383,7 +383,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         card.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(9) })
-        card.addView(text(percent.toString() + "% dari kuota harian", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
+        card.addView(text(percent.toString() + "% dari kuota harian gratis (estimasi aplikasi)", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
         return card
     }
 
