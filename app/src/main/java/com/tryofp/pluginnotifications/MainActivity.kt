@@ -184,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         }
         trackerTab = button("Log Tracker")
         feedbackTab = button("Feedback")
-        usageTab = button("Firestore Usage")
+        usageTab = button("Usage")
         tabs.addView(trackerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(3) })
         tabs.addView(feedbackTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(3); marginEnd = dp(3) })
         tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(3) })
@@ -298,6 +298,10 @@ class MainActivity : AppCompatActivity() {
                 logContainer.addView(usageMetricCard("DOCUMENT READS", reads, readLimit))
                 logContainer.addView(usageMetricCard("DOCUMENT WRITES", writes, writeLimit))
                 logContainer.addView(usageMetricCard("DOCUMENT DELETES", deletes, deleteLimit))
+                val storage = result.optJSONObject("storage")
+                if (storage != null) {
+                    logContainer.addView(usageStorageCard(storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L))
+                }
                 logContainer.addView(text("Terakhir diperbarui: " + formatTime(result.optString("updatedAt", "")), 11f, muted).apply {
                     setPadding(dp(4), dp(10), dp(4), dp(3))
                 })
@@ -306,6 +310,32 @@ class MainActivity : AppCompatActivity() {
                 })
             }
         }
+    }
+
+
+    private fun usageStorageCard(usedBytes: Long, limitBytes: Long): View {
+        val safeLimit = limitBytes.coerceAtLeast(1L)
+        val percent = ((usedBytes.toDouble() / safeLimit.toDouble()) * 100.0).toInt().coerceIn(0, 100)
+        val usedMb = usedBytes.toDouble() / (1024.0 * 1024.0)
+        val limitMb = safeLimit.toDouble() / (1024.0 * 1024.0)
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(13), dp(14), dp(13))
+            background = rounded(panel, 12)
+            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) }
+        }
+        card.addView(text("DATABASE STORAGE", 11f, muted, true))
+        card.addView(text(String.format(Locale.US, "%.1f MB / %.0f MB", usedMb, limitMb), 21f, white, true))
+        val bar = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = percent
+            progressTintList = android.content.res.ColorStateList.valueOf(
+                if (percent >= 90) Color.rgb(239, 68, 68) else if (percent >= 75) Color.rgb(245, 158, 11) else Color.rgb(34, 197, 94)
+            )
+        }
+        card.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(9) })
+        card.addView(text(percent.toString() + "% dari batas storage gratis", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
+        return card
     }
 
     private fun usageMetricCard(label: String, used: Long, limit: Long): View {
@@ -327,7 +357,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
         card.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(9) })
-        card.addView(text("$" + percent + "% dari kuota harian", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
+        card.addView(text(percent.toString() + "% dari kuota harian", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
         return card
     }
 
