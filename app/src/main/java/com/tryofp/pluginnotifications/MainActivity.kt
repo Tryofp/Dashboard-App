@@ -19,6 +19,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.messaging.FirebaseMessaging
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -48,6 +51,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
         TryoMessagingService.ensureChannel(this)
         requestNotificationPermissionIfNeeded()
         refreshAndRegisterToken()
@@ -131,6 +137,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         setContentView(root)
+        applySystemInsets(root, 28, 36, 28, 36)
     }
 
     private fun showDashboard() {
@@ -209,6 +216,7 @@ class MainActivity : AppCompatActivity() {
         loadMoreButton.setOnClickListener { loadLogs(false) }
 
         setContentView(root)
+        applySystemInsets(root, 18, 20, 18, 14)
         updateTabButtons()
         loadStatCounts()
         loadLogs(true)
@@ -365,6 +373,26 @@ class MainActivity : AppCompatActivity() {
             setColor(color)
             cornerRadius = dp(radius).toFloat()
         }
+
+    private fun applySystemInsets(content: View, left: Int, top: Int, right: Int, bottom: Int) {
+        val baseLeft = dp(left)
+        val baseTop = dp(top)
+        val baseRight = dp(right)
+        val baseBottom = dp(bottom)
+        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val safe = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(
+                baseLeft + safe.left,
+                baseTop + safe.top,
+                baseRight + safe.right,
+                baseBottom + safe.bottom
+            )
+            insets
+        }
+        ViewCompat.requestApplyInsets(content)
+    }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
