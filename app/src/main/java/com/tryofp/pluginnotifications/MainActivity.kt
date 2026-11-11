@@ -296,7 +296,7 @@ class MainActivity : AppCompatActivity() {
         if (loading) return
         val key = dashboardKey ?: return
         loading = true
-        logStatus.text = "Mengambil metrik Cloud Monitoring…"
+        logStatus.text = "Menghitung estimasi operasi Firestore…"
         loadMoreButton.visibility = View.GONE
         DashboardApi.loadFirestoreUsage(key) { result, error ->
             runOnUiThread {
@@ -316,13 +316,17 @@ class MainActivity : AppCompatActivity() {
                 val writeLimit = limits?.optLong("writes", 20000L) ?: 20000L
                 val deleteLimit = limits?.optLong("deletes", 20000L) ?: 20000L
 
-                logStatus.text = "Pemakaian kuota harian • " + result.optString("period", "Pacific Time")
+                logStatus.text = "Estimasi penggunaan • " + result.optString("period", "WIB")
                 logContainer.addView(usageMetricCard("DOCUMENT READS", reads, readLimit))
                 logContainer.addView(usageMetricCard("DOCUMENT WRITES", writes, writeLimit))
                 logContainer.addView(usageMetricCard("DOCUMENT DELETES", deletes, deleteLimit))
                 val storage = result.optJSONObject("storage")
-                if (storage != null) {
+                if (storage != null && storage.optBoolean("available", true)) {
                     logContainer.addView(usageStorageCard(storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L))
+                } else {
+                    logContainer.addView(text("DATABASE STORAGE\nTidak tersedia pada mode estimasi tanpa Cloud Monitoring.", 12f, muted).apply {
+                        setPadding(dp(4), dp(10), dp(4), dp(12))
+                    })
                 }
                 logContainer.addView(text("Terakhir diperbarui: " + formatTime(result.optString("updatedAt", "")), 11f, muted).apply {
                     setPadding(dp(4), dp(10), dp(4), dp(3))
