@@ -5,8 +5,8 @@
     <application
         android:allowBackup="false"
         android:label="Tryo Plugin Manager"
-        android:icon="@android:drawable/ic_dialog_info"
-        android:roundIcon="@android:drawable/ic_dialog_info"
+        android:icon="@drawable/tryo_launcher"
+        android:roundIcon="@drawable/tryo_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data
