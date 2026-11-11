@@ -42,7 +42,7 @@ object FcmRegistration {
                     }.getOrDefault(false)
 
                 // ContentService's 3xx is expected after doPost has executed.
-                val ok = (code in 200..299 && response.contains("\\"status\\":\\"success\\"")) ||
+                val ok = (code in 200..299 && response.contains("\"status\":\"success\"")) ||
                     isAppsScriptRedirect
                 callback(
                     ok,
