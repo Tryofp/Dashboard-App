@@ -4,14 +4,14 @@ plugins {
     id("com.google.gms.google-services")
 }
 android {
-    namespace = "com.tryofp.pluginnotifications"
+    namespace = "com.tryoplugin.dashbor"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.tryofp.pluginnotifications"
+        applicationId = "com.tryoplugin.dashbor"
         minSdk = 23
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "2.0.0"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
