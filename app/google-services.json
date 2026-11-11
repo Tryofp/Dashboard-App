@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "627574821915",
+    "project_id": "tryo-plugin-notifications",
+    "storage_bucket": "tryo-plugin-notifications.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:627574821915:android:10eb84ab89743e39d054be",
+        "android_client_info": {
+          "package_name": "com.tryofp.pluginnotifications"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMcKTjZh7G8Vlo1hBztSrUG2eO7AY6K14"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
