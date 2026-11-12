@@ -33,8 +33,10 @@ import com.tryo.dashboard.feature.pluginmanager.PluginManagerFeature
 import com.tryo.dashboard.feature.pluginmanager.PluginManagerScreen
 import com.tryo.dashboard.feature.tracker.TrackerFeature
 import com.tryo.dashboard.feature.tracker.TrackerScreen
+import com.tryo.dashboard.feature.tracker.TrackerRepository
 import com.tryo.dashboard.feature.usage.UsageFeature
 import com.tryo.dashboard.feature.usage.UsageDataScreen
+import com.tryo.dashboard.feature.usage.UsageRepository
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -314,7 +316,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadStatCounts() {
         val key = dashboardKey ?: return
-        DashboardApi.loadLogs(key, "tracker", 0, 1) { result, _ ->
+        TrackerRepository.load(key, 0, 1) { result, _ ->
             runOnUiThread {
                 if (result?.optString("status") == "success" && ::hubCountView.isInitialized) {
                     hubCountView.text = result.optInt("total", 0).toString()
@@ -369,7 +371,7 @@ class MainActivity : AppCompatActivity() {
         loading = true
         logStatus.text = "Menghitung estimasi operasi Firestore…"
         loadMoreButton.visibility = View.GONE
-        DashboardApi.loadFirestoreUsage(key) { result, error ->
+        UsageRepository.load(key) { result, error ->
             runOnUiThread {
                 loading = false
                 logContainer.removeAllViews()
@@ -422,7 +424,7 @@ class MainActivity : AppCompatActivity() {
         loading = true
         logStatus.text = if (reset) "Memuat data…" else "Memuat data berikutnya…"
         loadMoreButton.visibility = View.GONE
-        DashboardApi.loadLogs(key, selectedTab, offset, 50) { result, error ->
+        if (selectedTab == "tracker") TrackerRepository.load(key, offset, 50) else DashboardApi.loadLogs(key, selectedTab, offset, 50) { result, error ->
             runOnUiThread {
                 loading = false
                 if (error != null || result?.optString("status") != "success") {
