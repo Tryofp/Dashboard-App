@@ -1,4 +1,4 @@
-package com.tryoplugin.dashbor
+package com.tryo.dashboard
 
 import android.Manifest
 import android.content.pm.PackageManager
