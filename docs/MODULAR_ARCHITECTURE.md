@@ -15,8 +15,10 @@ The first release has exactly three user-facing feature areas:
 - `core/security`: encrypted local credential storage.
 - `core/notifications`: FCM registration and notification channel/service integration.
 - `feature/plugin-manager`: primary feature UI and its state.
-- `feature/tracker`: tracker data presentation and pagination.
-- `feature/usage-data`: Firestore estimate presentation and refresh lifecycle.
+- `feature/tracker`: tracker repository (loads tracker records through `core/network`), data presentation, and pagination.
+- `feature/usage`: usage repository (loads Firestore usage estimates through `core/network`) and metric presentation.
+
+The feature repositories are thin boundaries over `DashboardApi`; they do not create a second network stack or bypass Apps Script. The Android shell retains navigation, shared authentication state, and feedback handling.
 
 Feature modules must not call Firestore directly from the Android client. The Apps Script bridge remains the controlled API boundary; Firestore remains the database. Google Sheets is not part of this architecture.
 
