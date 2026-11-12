@@ -30,6 +30,7 @@ import com.tryo.dashboard.core.network.RemoteModuleConfig
 import com.tryo.dashboard.core.security.DashboardKeyStore
 import com.tryo.dashboard.core.notifications.FcmRegistration
 import com.tryo.dashboard.feature.pluginmanager.PluginManagerFeature
+import com.tryo.dashboard.feature.pluginmanager.PluginManagerScreen
 import com.tryo.dashboard.feature.tracker.TrackerFeature
 import com.tryo.dashboard.feature.usage.UsageFeature
 import org.json.JSONObject
@@ -347,25 +348,9 @@ class MainActivity : AppCompatActivity() {
         logContainer.removeAllViews()
         loadMoreButton.visibility = View.GONE
         logStatus.text = "Pusat kontrol Dashboard"
-        logContainer.addView(text("Selamat datang di Dashboard App", 19f, white, true).apply {
-            setPadding(dp(4), dp(14), dp(4), dp(6))
-        })
-        logContainer.addView(text("Plugin Manager adalah modul utama. Status, pembaruan, dan pengelolaan plugin akan ditempatkan di sini.", 13f, muted).apply {
-            setPadding(dp(4), 0, dp(4), dp(14))
-        })
-        logContainer.addView(moduleInfoCard("PLUGIN MANAGER", "Modul utama • status dan pembaruan plugin"))
-        logContainer.addView(moduleInfoCard("TRACKER", "Riwayat aktivitas dan event aplikasi"))
-        logContainer.addView(moduleInfoCard("USAGE DATA", "Estimasi operasi dan penggunaan Firestore"))
-        logContainer.addView(text("Data operasional tetap melalui Apps Script dan Firestore.", 11f, muted).apply {
-            setPadding(dp(4), dp(12), dp(4), dp(12))
-        })
-    }
-
-    private fun moduleInfoCard(title: String, description: String): View {
-        val card = cardColumn()
-        card.addView(text(title, 13f, white, true))
-        card.addView(text(description, 12f, muted))
-        return card
+        logContainer.addView(
+            PluginManagerScreen.create(this, panel, white, muted, ::dp)
+        )
     }
 
     private fun loadUsage() {
