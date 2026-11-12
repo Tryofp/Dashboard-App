@@ -117,7 +117,15 @@ class MainActivity : AppCompatActivity() {
                     if (selectedTab == "plugin-manager" && "plugin-manager" !in remoteEnabledModules) {
                         switchTab(if ("tracker" in remoteEnabledModules) "tracker" else "feedback")
                     } else if (selectedTab == "tracker" && "tracker" !in remoteEnabledModules) {
-                        switchTab("feedback")
+                        switchTab(if ("plugin-manager" in remoteEnabledModules) "plugin-manager" else "feedback")
+                    } else if (selectedTab == "usage" && "usage-data" !in remoteEnabledModules) {
+                        switchTab(
+                            when {
+                                "plugin-manager" in remoteEnabledModules -> "plugin-manager"
+                                "tracker" in remoteEnabledModules -> "tracker"
+                                else -> "feedback"
+                            }
+                        )
                     }
                     updateTabButtons()
                 }
