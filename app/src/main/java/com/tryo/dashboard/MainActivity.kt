@@ -32,7 +32,9 @@ import com.tryo.dashboard.core.notifications.FcmRegistration
 import com.tryo.dashboard.feature.pluginmanager.PluginManagerFeature
 import com.tryo.dashboard.feature.pluginmanager.PluginManagerScreen
 import com.tryo.dashboard.feature.tracker.TrackerFeature
+import com.tryo.dashboard.feature.tracker.TrackerScreen
 import com.tryo.dashboard.feature.usage.UsageFeature
+import com.tryo.dashboard.feature.usage.UsageDataScreen
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -378,12 +380,12 @@ class MainActivity : AppCompatActivity() {
                 val deleteLimit = limits?.optLong("deletes", 20000L) ?: 20000L
 
                 logStatus.text = "Estimasi penggunaan • " + result.optString("period", "WIB")
-                logContainer.addView(usageMetricCard("ESTIMATED DOCUMENT READS", reads, readLimit))
-                logContainer.addView(usageMetricCard("ESTIMATED DOCUMENT WRITES", writes, writeLimit))
-                logContainer.addView(usageMetricCard("ESTIMATED DOCUMENT DELETES", deletes, deleteLimit))
+                logContainer.addView(UsageDataScreen.metricCard(this, "ESTIMATED DOCUMENT READS", reads, readLimit, panel, white, muted, ::dp))
+                logContainer.addView(UsageDataScreen.metricCard(this, "ESTIMATED DOCUMENT WRITES", writes, writeLimit, panel, white, muted, ::dp))
+                logContainer.addView(UsageDataScreen.metricCard(this, "ESTIMATED DOCUMENT DELETES", deletes, deleteLimit, panel, white, muted, ::dp))
                 val storage = result.optJSONObject("storage")
                 if (storage != null && storage.optBoolean("available", true)) {
-                    logContainer.addView(usageStorageCard(storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L))
+                    logContainer.addView(UsageDataScreen.storageCard(this, storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L, panel, white, muted, ::dp))
                 } else {
                     logContainer.addView(text("DATABASE STORAGE\nTidak dihitung dalam mode estimasi aplikasi.", 12f, muted).apply {
                         setPadding(dp(4), dp(10), dp(4), dp(12))
@@ -399,54 +401,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun usageStorageCard(usedBytes: Long, limitBytes: Long): View {
-        val safeLimit = limitBytes.coerceAtLeast(1L)
-        val percent = ((usedBytes.toDouble() / safeLimit.toDouble()) * 100.0).toInt().coerceIn(0, 100)
-        val usedMb = usedBytes.toDouble() / (1024.0 * 1024.0)
-        val limitMb = safeLimit.toDouble() / (1024.0 * 1024.0)
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(13), dp(14), dp(13))
-            background = rounded(panel, 12)
-            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) }
-        }
-        card.addView(text("DATABASE STORAGE", 11f, muted, true))
-        card.addView(text(String.format(Locale.US, "%.1f MB / %.0f MB", usedMb, limitMb), 21f, white, true))
-        val bar = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 100
-            progress = percent
-            progressTintList = android.content.res.ColorStateList.valueOf(
-                if (percent >= 90) Color.rgb(239, 68, 68) else if (percent >= 75) Color.rgb(245, 158, 11) else Color.rgb(34, 197, 94)
-            )
-        }
-        card.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(9) })
-        card.addView(text(percent.toString() + "% dari batas storage gratis", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
-        return card
-    }
-
-    private fun usageMetricCard(label: String, used: Long, limit: Long): View {
-        val safeLimit = limit.coerceAtLeast(1L)
-        val percent = ((used.toDouble() / safeLimit.toDouble()) * 100.0).toInt().coerceIn(0, 100)
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(14), dp(13), dp(14), dp(13))
-            background = rounded(panel, 12)
-            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) }
-        }
-        card.addView(text(label, 11f, muted, true))
-        card.addView(text(String.format(Locale.US, "%,d / %,d", used, limit), 21f, white, true))
-        val bar = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 100
-            progress = percent
-            progressTintList = android.content.res.ColorStateList.valueOf(
-                if (percent >= 90) Color.rgb(239, 68, 68) else if (percent >= 75) Color.rgb(245, 158, 11) else Color.rgb(34, 197, 94)
-            )
-        }
-        card.addView(bar, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(9) })
-        card.addView(text(percent.toString() + "% dari kuota harian gratis (estimasi aplikasi)", 11f, muted).apply { setPadding(0, dp(5), 0, 0) })
-        return card
-    }
 
     private fun loadLogs(reset: Boolean) {
         if (loading) return
@@ -476,7 +430,7 @@ class MainActivity : AppCompatActivity() {
                 if (records != null) {
                     for (i in 0 until records.length()) {
                         val record = records.optJSONObject(i) ?: continue
-                        logContainer.addView(if (selectedTab == "tracker") trackerCard(record) else feedbackCard(record))
+                        logContainer.addView(if (selectedTab == "tracker") TrackerScreen.recordCard(this, record, panel, white, muted, ::dp, ::formatTime) else feedbackCard(record))
                         added++
                     }
                 }
@@ -487,17 +441,6 @@ class MainActivity : AppCompatActivity() {
                 if (offset == 0) addEmptyState(if (selectedTab == "tracker") "Belum ada log tracker." else "Belum ada feedback.")
             }
         }
-    }
-
-    private fun trackerCard(item: JSONObject): View {
-        val card = cardColumn()
-        card.addView(text(item.optString("Username", "Unknown"), 16f, white, true))
-        card.addView(text("User ID: ${item.optString("UserId", "-")}", 11f, muted))
-        card.addView(text("Game: ${item.optString("MapName", "-")}", 13f, white))
-        card.addView(text("Device: ${item.optString("Device", "-")}  •  ${item.optString("Playtime", "-")}", 12f, muted))
-        card.addView(text("Place ID: ${item.optString("PlaceId", "-")}", 11f, muted))
-        card.addView(text(formatTime(item.optString("Timestamp", "")), 11f, Color.rgb(96, 165, 250)))
-        return card
     }
 
     private fun feedbackCard(item: JSONObject): View {
