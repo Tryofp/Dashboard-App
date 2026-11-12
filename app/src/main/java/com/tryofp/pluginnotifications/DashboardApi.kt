@@ -1,4 +1,4 @@
-package com.tryoplugin.dashbor
+package com.tryo.dashboard
 
 import org.json.JSONObject
 import java.net.HttpURLConnection
