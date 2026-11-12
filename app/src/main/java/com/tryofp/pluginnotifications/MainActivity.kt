@@ -26,6 +26,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.messaging.FirebaseMessaging
 import com.tryo.dashboard.core.network.DashboardApi
+import com.tryo.dashboard.core.network.RemoteModuleConfig
 import com.tryo.dashboard.core.security.DashboardKeyStore
 import com.tryo.dashboard.core.notifications.FcmRegistration
 import org.json.JSONObject
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private val white = Color.WHITE
     private var dashboardKey: String? = null
     private var selectedTab = "tracker"
+    private var remoteEnabledModules = setOf("plugin-manager", "tracker", "usage-data")
     private var offset = 0
     private var total = 0
     private var hasMore = false
@@ -74,11 +76,43 @@ class MainActivity : AppCompatActivity() {
         refreshAndRegisterToken()
         dashboardKey = DashboardKeyStore.read(this)
         if (dashboardKey.isNullOrBlank()) showLogin() else showDashboard()
+        refreshRemoteModuleConfig()
     }
 
     override fun onDestroy() {
         usageRefreshHandler.removeCallbacks(usageRefreshRunnable)
         super.onDestroy()
+    }
+
+    private fun refreshRemoteModuleConfig() {
+        RemoteModuleConfig.fetch { config, error ->
+            runOnUiThread {
+                if (config == null) {
+                    // Remote config is optional; keep the last-known safe defaults.
+                    return@runOnUiThread
+                }
+                if (config.appId != packageName) return@runOnUiThread
+                val currentVersion = if (Build.VERSION.SDK_INT >= 28) {
+                    packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageManager.getPackageInfo(packageName, 0).versionCode
+                }
+                if (config.minimumVersionCode > currentVersion) {
+                    Toast.makeText(this, "Dashboard App perlu diperbarui.", Toast.LENGTH_LONG).show()
+                    return@runOnUiThread
+                }
+                remoteEnabledModules = config.enabledModules
+                if (::trackerTab.isInitialized) {
+                    trackerTab.visibility = if ("tracker" in remoteEnabledModules) View.VISIBLE else View.GONE
+                    usageTab.visibility = if ("usage-data" in remoteEnabledModules) View.VISIBLE else View.GONE
+                    if (selectedTab == "tracker" && "tracker" !in remoteEnabledModules) {
+                        switchTab("feedback")
+                    }
+                    updateTabButtons()
+                }
+            }
+        }
     }
 
     private fun requestNotificationPermissionIfNeeded() {
