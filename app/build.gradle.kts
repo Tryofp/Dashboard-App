@@ -4,14 +4,14 @@ plugins {
     id("com.google.gms.google-services")
 }
 android {
-    namespace = "com.tryoplugin.dashbor"
+    namespace = "com.tryo.dashboard"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.tryoplugin.dashbor"
+        applicationId = "com.tryo.dashboard"
         minSdk = 23
         targetSdk = 35
-        versionCode = 3
-        versionName = "2.0.0"
+        versionCode = 4
+        versionName = "2.1.0"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
