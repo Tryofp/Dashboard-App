@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "app": {
+    "id": "com.tryo.dashboard",
+    "minimumVersionCode": 4
+  },
+  "modules": [
+    {
+      "id": "plugin-manager",
+      "name": "Plugin Manager",
+      "role": "primary",
+      "enabled": true,
+      "delivery": "native-shell"
+    },
+    {
+      "id": "tracker",
+      "name": "Tracker",
+      "role": "feature",
+      "enabled": true,
+      "delivery": "native-shell"
+    },
+    {
+      "id": "usage-data",
+      "name": "Usage Data",
+      "role": "feature",
+      "enabled": true,
+      "dataSource": "apps-script-firestore-bridge",
+      "enabled": true,
+      "delivery": "native-shell"
+    }
+  ],
+  "backend": {
+    "type": "apps-script",
+    "database": "firestore",
+    "googleSheets": false
+  },
+  "updatePolicy": {
+    "remoteConfig": true,
+    "remoteWebAssets": true,
+    "nativeCodeRequiresApk": true
+  }
+}
