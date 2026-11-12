@@ -20,6 +20,12 @@ android {
     kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
+    implementation(project(":core:network"))
+    implementation(project(":core:security"))
+    implementation(project(":core:notifications"))
+    implementation(project(":feature:pluginmanager"))
+    implementation(project(":feature:tracker"))
+    implementation(project(":feature:usage"))
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-messaging")
     implementation("androidx.core:core-ktx:1.15.0")
