@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:allowBackup="false"
-        android:label="Tryo Plugin Manager"
+        android:label="Dashboard App"
         android:icon="@drawable/tryo_launcher"
         android:roundIcon="@drawable/tryo_launcher"
         android:supportsRtl="true"
