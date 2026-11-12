@@ -24,8 +24,6 @@
       "name": "Usage Data",
       "role": "feature",
       "enabled": true,
-      "dataSource": "apps-script-firestore-bridge",
-      "enabled": true,
       "delivery": "native-shell"
     }
   ],
