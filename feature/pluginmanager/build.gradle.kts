@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 android {
+    namespace = "com.tryo.dashboard.feature.pluginmanager"
     compileSdk = 35
     defaultConfig { minSdk = 23 }
     compileOptions {
