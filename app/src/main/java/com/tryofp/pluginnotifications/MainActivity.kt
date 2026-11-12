@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
     private val muted = Color.rgb(166, 180, 198)
     private val white = Color.WHITE
     private var dashboardKey: String? = null
-    private var selectedTab = "tracker"
+    private var selectedTab = "plugin-manager"
     private var remoteEnabledModules = setOf("plugin-manager", "tracker", "usage-data")
     private var offset = 0
     private var total = 0
@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var logContainer: LinearLayout
     private lateinit var logStatus: TextView
     private lateinit var loadMoreButton: Button
+    private lateinit var managerTab: Button
     private lateinit var trackerTab: Button
     private lateinit var feedbackTab: Button
     private lateinit var usageTab: Button
@@ -104,9 +105,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 remoteEnabledModules = config.enabledModules
                 if (::trackerTab.isInitialized) {
+                    managerTab.visibility = if ("plugin-manager" in remoteEnabledModules) View.VISIBLE else View.GONE
                     trackerTab.visibility = if ("tracker" in remoteEnabledModules) View.VISIBLE else View.GONE
                     usageTab.visibility = if ("usage-data" in remoteEnabledModules) View.VISIBLE else View.GONE
-                    if (selectedTab == "tracker" && "tracker" !in remoteEnabledModules) {
+                    if (selectedTab == "plugin-manager" && "plugin-manager" !in remoteEnabledModules) {
+                        switchTab(if ("tracker" in remoteEnabledModules) "tracker" else "feedback")
+                    } else if (selectedTab == "tracker" && "tracker" !in remoteEnabledModules) {
                         switchTab("feedback")
                     }
                     updateTabButtons()
@@ -235,13 +239,16 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, 0, 0, dp(12))
         }
-        trackerTab = button("Log Tracker")
+        managerTab = button("Plugin Manager")
+        trackerTab = button("Tracker")
         feedbackTab = button("Feedback")
         usageTab = button("Usage")
-        tabs.addView(trackerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(3) })
-        tabs.addView(feedbackTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(3); marginEnd = dp(3) })
-        tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(3) })
+        tabs.addView(managerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(2) })
+        tabs.addView(trackerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(2); marginEnd = dp(2) })
+        tabs.addView(feedbackTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(2); marginEnd = dp(2) })
+        tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(2) })
         root.addView(tabs)
+        managerTab.setOnClickListener { switchTab("plugin-manager") }
         trackerTab.setOnClickListener { switchTab("tracker") }
         feedbackTab.setOnClickListener { switchTab("feedback") }
         usageTab.setOnClickListener { switchTab("usage") }
@@ -254,7 +261,7 @@ class MainActivity : AppCompatActivity() {
         toolbar.addView(logStatus, LinearLayout.LayoutParams(0, dp(38), 1f))
         val refresh = button("Refresh")
         toolbar.addView(refresh, LinearLayout.LayoutParams(dp(88), dp(38)))
-        refresh.setOnClickListener { if (selectedTab == "usage") loadUsage() else loadLogs(true) }
+        refresh.setOnClickListener { when (selectedTab) { "usage" -> loadUsage(); "plugin-manager" -> loadPluginManager(); else -> loadLogs(true) } }
         root.addView(toolbar)
 
         val scroll = ScrollView(this).apply {
@@ -276,7 +283,7 @@ class MainActivity : AppCompatActivity() {
         applySystemInsets(root, 18, 20, 18, 14)
         updateTabButtons()
         loadStatCounts()
-        loadLogs(true)
+        loadPluginManager()
     }
 
     private fun statCard(label: String, value: String): View {
@@ -317,16 +324,45 @@ class MainActivity : AppCompatActivity() {
         if (tab == "usage") {
             loadUsage()
             usageRefreshHandler.postDelayed(usageRefreshRunnable, 5 * 60 * 1000L)
+        } else if (tab == "plugin-manager") {
+            loadPluginManager()
         } else {
             loadLogs(true)
         }
     }
 
     private fun updateTabButtons() {
-        if (!::trackerTab.isInitialized || !::feedbackTab.isInitialized || !::usageTab.isInitialized) return
+        if (!::managerTab.isInitialized || !::trackerTab.isInitialized || !::feedbackTab.isInitialized || !::usageTab.isInitialized) return
+        managerTab.background = rounded(if (selectedTab == "plugin-manager") Color.rgb(37, 99, 235) else panel, 10)
         trackerTab.background = rounded(if (selectedTab == "tracker") Color.rgb(37, 99, 235) else panel, 10)
         feedbackTab.background = rounded(if (selectedTab == "feedback") Color.rgb(37, 99, 235) else panel, 10)
         usageTab.background = rounded(if (selectedTab == "usage") Color.rgb(37, 99, 235) else panel, 10)
+    }
+
+    private fun loadPluginManager() {
+        loading = false
+        logContainer.removeAllViews()
+        loadMoreButton.visibility = View.GONE
+        logStatus.text = "Pusat kontrol Dashboard"
+        logContainer.addView(text("Selamat datang di Dashboard App", 19f, white, true).apply {
+            setPadding(dp(4), dp(14), dp(4), dp(6))
+        })
+        logContainer.addView(text("Plugin Manager adalah modul utama. Status, pembaruan, dan pengelolaan plugin akan ditempatkan di sini.", 13f, muted).apply {
+            setPadding(dp(4), 0, dp(4), dp(14))
+        })
+        logContainer.addView(moduleInfoCard("PLUGIN MANAGER", "Modul utama • status dan pembaruan plugin"))
+        logContainer.addView(moduleInfoCard("TRACKER", "Riwayat aktivitas dan event aplikasi"))
+        logContainer.addView(moduleInfoCard("USAGE DATA", "Estimasi operasi dan penggunaan Firestore"))
+        logContainer.addView(text("Data operasional tetap melalui Apps Script dan Firestore.", 11f, muted).apply {
+            setPadding(dp(4), dp(12), dp(4), dp(12))
+        })
+    }
+
+    private fun moduleInfoCard(title: String, description: String): View {
+        val card = cardColumn()
+        card.addView(text(title, 13f, white, true))
+        card.addView(text(description, 12f, muted))
+        return card
     }
 
     private fun loadUsage() {
