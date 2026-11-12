@@ -1,32 +1,35 @@
-# Tryo Plugin Notifications (Android)
+# Dashboard App
 
-Native Android companion app for Tryo Plugin Manager push notifications using Firebase Cloud Messaging.
+Android dashboard companion for Tryo Plugin Manager services.
 
-## Android application ID
+## Branch policy
 
-`com.tryofp.pluginnotifications`
+- `main`: stable production branch. Changes land here only after beta verification and approval.
+- `dashboard-v2`: active beta and modular development branch.
+- `backup/dashboard-v2-before-modular-20261113`: preserved pre-refactor snapshot.
 
-Register the Firebase Android app with this exact package name.
+## Android identity
 
-## Firebase setup
+- App label: Dashboard App
+- Application ID / namespace: `com.tryo.dashboard`
+- Firebase project: `tryo-plugin-notifications`
 
-1. Open Firebase Console and select project `tryo-plugin-notifications`.
-2. Add an Android app with package name `com.tryofp.pluginnotifications`.
-3. Download `google-services.json`.
-4. Put it at `app/google-services.json` in this repository.
-5. Commit and push it. This is client configuration, not a service-account private key. Never put a service-account JSON/private key in this app or repository.
+The Firebase project is intentionally reused. The Android client registration for `com.tryo.dashboard` must exist in `app/google-services.json`.
 
-GitHub Actions builds a debug APK on every push to `main`, and can also be started manually from Actions.
+## Product modules (initial scope)
 
-## Included
+1. Plugin Manager — primary dashboard and plugin/update status.
+2. Tracker — activity and event history.
+3. Usage Data — Firestore usage estimates and storage indicators.
 
-- Firebase Cloud Messaging Android SDK.
-- Android 13+ notification permission request.
-- High-importance notification channel `tryo_updates`.
-- FCM token registration to the existing Apps Script `FcmRegister` endpoint.
-- Token refresh registration.
-- No Firebase service-account credential in the APK.
+The app backend remains Google Apps Script as the API bridge, with Firestore as the data store. Do not replace Firestore with Google Sheets.
 
-## Backend follow-up
+## Modularization approach
 
-The Apps Script sender still needs Android-specific channel/priority configuration for native tokens while preserving the existing Web Push configuration for PWA tokens.
+Keep the Android shell, authentication, API client, secure key storage, and FCM integration in shared core components. Feature screens and their data contracts are separated by module so they can be developed and tested independently.
+
+Remote configuration and remotely hosted presentation assets can be updated without reinstalling the Android shell. Changes to native Kotlin/Android code still require a signed app update and Android installation approval; Android does not permit silently replacing native app code from GitHub.
+
+## Build
+
+GitHub Actions builds a debug APK on pushes to `main` and `dashboard-v2`, and supports manual runs from Actions. Beta builds must be tested before promotion to `main`.
