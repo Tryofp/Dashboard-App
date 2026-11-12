@@ -29,6 +29,9 @@ import com.tryo.dashboard.core.network.DashboardApi
 import com.tryo.dashboard.core.network.RemoteModuleConfig
 import com.tryo.dashboard.core.security.DashboardKeyStore
 import com.tryo.dashboard.core.notifications.FcmRegistration
+import com.tryo.dashboard.feature.pluginmanager.PluginManagerFeature
+import com.tryo.dashboard.feature.tracker.TrackerFeature
+import com.tryo.dashboard.feature.usage.UsageFeature
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -40,8 +43,8 @@ class MainActivity : AppCompatActivity() {
     private val muted = Color.rgb(166, 180, 198)
     private val white = Color.WHITE
     private var dashboardKey: String? = null
-    private var selectedTab = "plugin-manager"
-    private var remoteEnabledModules = setOf("plugin-manager", "tracker", "usage-data")
+    private var selectedTab = PluginManagerFeature.ID
+    private var remoteEnabledModules = setOf(PluginManagerFeature.ID, TrackerFeature.ID, UsageFeature.ID)
     private var offset = 0
     private var total = 0
     private var hasMore = false
