@@ -1,4 +1,4 @@
-package com.tryoplugin.dashbor
+package com.tryo.dashboard
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
