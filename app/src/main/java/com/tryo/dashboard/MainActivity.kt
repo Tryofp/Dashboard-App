@@ -13,10 +13,12 @@ import android.os.Looper
 import android.text.InputType
 import android.view.Gravity
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -55,7 +57,7 @@ class MainActivity : AppCompatActivity() {
     private var dashboardKey: String? = null
     private var selectedTab = PluginManagerFeature.ID
     private var remoteEnabledModules = setOf(PluginManagerFeature.ID, TrackerFeature.ID, UsageFeature.ID, DonghuaFeature.ID)
-    private var selectedDonghuaType = "donghua"
+    private var selectedDonghuaType = "all"
     private var offset = 0
     private var total = 0
     private var hasMore = false
@@ -422,6 +424,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showProgressDialog(existing: ProgressItem?) {
+        val typeInput = Spinner(this).apply {
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, arrayOf("Donghua", "Manhwa"))
+            setSelection(if (existing?.type == "manhwa" || (existing == null && selectedDonghuaType == "manhwa")) 1 else 0)
+            isEnabled = existing == null
+        }
         val titleInput = EditText(this).apply {
             hint = "Judul lengkap"
             setText(existing?.title.orEmpty())
@@ -437,7 +444,7 @@ class MainActivity : AppCompatActivity() {
             setHintTextColor(muted)
         }
         val statusInput = EditText(this).apply {
-            hint = "Status (opsional: Tamat / Bersambung)"
+            hint = "Status (Tamat / Gantung / Bersambung)"
             setText(existing?.status.orEmpty())
             setTextColor(white)
             setHintTextColor(muted)
@@ -445,6 +452,7 @@ class MainActivity : AppCompatActivity() {
         val fields = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(8), dp(20), 0)
+            addView(typeInput, LinearLayout.LayoutParams(-1, dp(48)))
             addView(titleInput, LinearLayout.LayoutParams(-1, dp(52)))
             addView(episodeInput, LinearLayout.LayoutParams(-1, dp(52)))
             addView(statusInput, LinearLayout.LayoutParams(-1, dp(52)))
@@ -466,7 +474,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 val key = dashboardKey ?: return@setOnClickListener
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
-                DonghuaRepository.save(key, if (existing == null) "POST" else "PUT", title, episode, selectedDonghuaType, status) { result, error ->
+                DonghuaRepository.save(key, if (existing == null) "POST" else "PUT", title, episode, existing?.type ?: if (typeInput.selectedItemPosition == 1) "manhwa" else "donghua", status) { result, error ->
                     runOnUiThread {
                         if (error == null && result?.optString("status") == "success") {
                             dialog.dismiss()
@@ -490,7 +498,7 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Batal", null)
             .setPositiveButton("Hapus") { _, _ ->
                 val key = dashboardKey ?: return@setPositiveButton
-                DonghuaRepository.delete(key, item.title, selectedDonghuaType) { result, error ->
+                DonghuaRepository.delete(key, item.title, item.type) { result, error ->
                     runOnUiThread {
                         if (error == null && result?.optString("status") == "success") {
                             Toast.makeText(this, "Judul berhasil dihapus.", Toast.LENGTH_SHORT).show()
