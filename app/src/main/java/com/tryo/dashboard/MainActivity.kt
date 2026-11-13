@@ -381,32 +381,9 @@ class MainActivity : AppCompatActivity() {
                     return@runOnUiThread
                 }
 
-                val limits = result.optJSONObject("limits")
-                val reads = result.optLong("reads", 0L)
-                val writes = result.optLong("writes", 0L)
-                val deletes = result.optLong("deletes", 0L)
-                val readLimit = limits?.optLong("reads", 50000L) ?: 50000L
-                val writeLimit = limits?.optLong("writes", 20000L) ?: 20000L
-                val deleteLimit = limits?.optLong("deletes", 20000L) ?: 20000L
-
                 logStatus.text = "Estimasi penggunaan • " + result.optString("period", "WIB")
-                logContainer.addView(UsageDataScreen.metricCard(this, "ESTIMATED DOCUMENT READS", reads, readLimit, panel, white, muted, ::dp))
-                logContainer.addView(UsageDataScreen.metricCard(this, "ESTIMATED DOCUMENT WRITES", writes, writeLimit, panel, white, muted, ::dp))
-                logContainer.addView(UsageDataScreen.metricCard(this, "ESTIMATED DOCUMENT DELETES", deletes, deleteLimit, panel, white, muted, ::dp))
-                val storage = result.optJSONObject("storage")
-                if (storage != null && storage.optBoolean("available", true)) {
-                    logContainer.addView(UsageDataScreen.storageCard(this, storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L, panel, white, muted, ::dp))
-                } else {
-                    logContainer.addView(text("DATABASE STORAGE\nTidak dihitung dalam mode estimasi aplikasi.", 12f, muted).apply {
-                        setPadding(dp(4), dp(10), dp(4), dp(12))
-                    })
-                }
-                logContainer.addView(text("Terakhir diperbarui: " + formatTime(result.optString("updatedAt", "")), 11f, muted).apply {
-                    setPadding(dp(4), dp(10), dp(4), dp(3))
-                })
-                logContainer.addView(text(result.optString("note", "Metrik dapat mengalami keterlambatan."), 11f, muted).apply {
-                    setPadding(dp(4), dp(2), dp(4), dp(12))
-                })
+                UsageDataScreen.render(this, result, panel, white, muted, ::dp, ::formatTime)
+                    .forEach { logContainer.addView(it) }
             }
         }
     }
