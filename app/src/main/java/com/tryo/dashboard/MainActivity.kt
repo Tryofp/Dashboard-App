@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     private var hasMore = false
     private var loading = false
     private var donghuaLoading = false
+    private var cachedDonghuaItems: List<ProgressItem>? = null
     private val usageRefreshHandler = Handler(Looper.getMainLooper())
     private val usageRefreshRunnable = object : Runnable {
         override fun run() {
@@ -358,7 +359,8 @@ class MainActivity : AppCompatActivity() {
         } else if (tab == "plugin-manager") {
             loadPluginManager()
         } else if (tab == DonghuaFeature.ID) {
-            loadDonghua()
+            val cached = cachedDonghuaItems
+            if (cached != null) renderDonghuaList(cached) else loadDonghua()
         } else {
             loadLogs(true)
         }
@@ -393,34 +395,40 @@ class MainActivity : AppCompatActivity() {
         val key = dashboardKey ?: return
         if (donghuaLoading) return
         donghuaLoading = true
-        val requestedType = selectedDonghuaType
         logContainer.removeAllViews()
         loadMoreButton.visibility = View.GONE
         logStatus.text = "Menyinkronkan daftar Donghua / Manhwa…"
-        DonghuaRepository.load(key, requestedType) { items, error ->
+        // Ambil seluruh daftar sekali. Pergantian kategori selanjutnya memakai cache lokal.
+        DonghuaRepository.load(key, "all") { items, error ->
             runOnUiThread {
                 donghuaLoading = false
                 if (selectedTab != DonghuaFeature.ID) return@runOnUiThread
-                if (requestedType != selectedDonghuaType) {
-                    loadDonghua()
-                    return@runOnUiThread
-                }
-                logContainer.removeAllViews()
                 if (error != null || items == null) {
                     logStatus.text = "Sinkronisasi gagal"
                     addEmptyState(error ?: "Tidak dapat mengambil daftar.")
                     return@runOnUiThread
                 }
-                logStatus.text = "Total " + items.size + " judul"
-                logContainer.addView(DonghuaScreen.render(
-                    this, items, requestedType, panel, white, muted, ::dp,
-                    onTypeChange = { type -> selectedDonghuaType = type; loadDonghua() },
-                    onAdd = { showProgressDialog(null) },
-                    onEdit = { item -> showProgressDialog(item) },
-                    onDelete = { item -> confirmDeleteProgress(item) }
-                ))
+                cachedDonghuaItems = items
+                renderDonghuaList(items)
             }
         }
+    }
+
+    private fun renderDonghuaList(items: List<ProgressItem>) {
+        if (selectedTab != DonghuaFeature.ID) return
+        logContainer.removeAllViews()
+        loadMoreButton.visibility = View.GONE
+        logStatus.text = "Total " + items.size + " judul"
+        logContainer.addView(DonghuaScreen.render(
+            this, items, selectedDonghuaType, panel, white, muted, ::dp,
+            onTypeChange = { type ->
+                selectedDonghuaType = type
+                renderDonghuaList(items)
+            },
+            onAdd = { showProgressDialog(null) },
+            onEdit = { item -> showProgressDialog(item) },
+            onDelete = { item -> confirmDeleteProgress(item) }
+        ))
     }
 
     private fun showProgressDialog(existing: ProgressItem?) {
