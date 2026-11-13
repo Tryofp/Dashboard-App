@@ -27,7 +27,7 @@
       "delivery": "native-shell"
     },
     {
-      "id": "donghua-manwha",
+      "id": "donghua-manhwa",
       "name": "Donghua / Manhwa",
       "role": "feature",
       "enabled": true,
