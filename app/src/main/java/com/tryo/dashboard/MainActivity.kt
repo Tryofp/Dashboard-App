@@ -64,6 +64,8 @@ class MainActivity : AppCompatActivity() {
     private var loading = false
     private var donghuaLoading = false
     private var cachedDonghuaItems: List<ProgressItem>? = null
+    private var cachedPluginManagerView: View? = null
+    private var pluginManagerForceRefresh = false
     private val usageRefreshHandler = Handler(Looper.getMainLooper())
     private val usageRefreshRunnable = object : Runnable {
         override fun run() {
@@ -287,7 +289,11 @@ class MainActivity : AppCompatActivity() {
         dashboardToolbar.addView(refresh, LinearLayout.LayoutParams(dp(88), dp(38)))
         refresh.setOnClickListener { when (selectedTab) {
             "usage" -> loadUsage()
-            "plugin-manager" -> loadPluginManager()
+            "plugin-manager" -> {
+                cachedPluginManagerView = null
+                pluginManagerForceRefresh = true
+                loadPluginManager()
+            }
             DonghuaFeature.ID -> loadDonghua()
             else -> loadLogs(true)
         } }
@@ -384,11 +390,18 @@ class MainActivity : AppCompatActivity() {
         logContainer.removeAllViews()
         loadMoreButton.visibility = View.GONE
         logStatus.text = "Pusat kontrol Dashboard"
-        logContainer.addView(
-            PluginManagerScreen.create(this, panel, white, muted, ::dp) { destination ->
-                switchTab(destination)
-            }
-        )
+        val cachedView = cachedPluginManagerView
+        if (cachedView != null && !pluginManagerForceRefresh) {
+            logContainer.addView(cachedView)
+            return
+        }
+        val forceRefresh = pluginManagerForceRefresh
+        pluginManagerForceRefresh = false
+        val screen = PluginManagerScreen.create(this, panel, white, muted, ::dp, forceRefresh) { destination ->
+            switchTab(destination)
+        }
+        cachedPluginManagerView = screen
+        logContainer.addView(screen)
     }
 
     private fun loadDonghua() {
