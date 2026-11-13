@@ -31,6 +31,7 @@ object PluginManagerScreen {
         textColor: Int,
         mutedColor: Int,
         dp: (Int) -> Int,
+        forceRefresh: Boolean = false,
         onNavigate: (String) -> Unit
     ): View {
         val content = LinearLayout(context).apply {
@@ -139,7 +140,7 @@ object PluginManagerScreen {
             }
         }
 
-        PluginCatalogRepository.load { entries, error ->
+        PluginCatalogRepository.load(forceRefresh = forceRefresh) { entries, error ->
             Handler(Looper.getMainLooper()).post {
                 if (error != null || entries == null) {
                     status.text = "Gagal memuat katalog: ${error ?: "respons kosong"}"
