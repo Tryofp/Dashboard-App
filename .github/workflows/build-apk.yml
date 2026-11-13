@@ -37,7 +37,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Prepare release keystore
-        if: github.ref == 'refs/heads/dashboard-v2' || github.ref == 'refs/heads/donghua-integration'
+        if: github.ref == 'refs/heads/dashboard-v2' || github.ref == 'refs/heads/donghua-integration' || github.ref == 'refs/heads/donghua-integration' || github.ref == 'refs/heads/donghua-integration'
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
