@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(28), dp(36), dp(28), dp(36))
             setBackgroundColor(bg)
         }
-        root.addView(text("TRYO PLUGIN MANAGER", 23f, white, true, Gravity.CENTER))
+        root.addView(text("TRYO DASHBOARD", 23f, white, true, Gravity.CENTER))
         root.addView(text("Dashboard Log", 15f, muted, false, Gravity.CENTER).apply {
             setPadding(0, dp(8), 0, dp(26))
         })
@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         val heading = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        heading.addView(text("TRYO PLUGIN MANAGER", 18f, white, true))
+        heading.addView(text("TRYO DASHBOARD", 18f, white, true))
         notificationStatus = text("● Menghubungkan notifikasi…", 11f, muted)
         heading.addView(notificationStatus)
         header.addView(heading, LinearLayout.LayoutParams(0, -2, 1f))
