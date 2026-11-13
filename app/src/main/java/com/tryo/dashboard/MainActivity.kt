@@ -424,7 +424,7 @@ class MainActivity : AppCompatActivity() {
         loading = true
         logStatus.text = if (reset) "Memuat data…" else "Memuat data berikutnya…"
         loadMoreButton.visibility = View.GONE
-        if (selectedTab == "tracker") TrackerRepository.load(key, offset, 50) else DashboardApi.loadLogs(key, selectedTab, offset, 50) { result, error ->
+        val callback: (JSONObject?, String?) -> Unit = { result, error ->
             runOnUiThread {
                 loading = false
                 if (error != null || result?.optString("status") != "success") {
@@ -450,6 +450,11 @@ class MainActivity : AppCompatActivity() {
                 loadMoreButton.visibility = if (hasMore) View.VISIBLE else View.GONE
                 if (offset == 0) addEmptyState(if (selectedTab == "tracker") "Belum ada log tracker." else "Belum ada feedback.")
             }
+        }
+        if (selectedTab == "tracker") {
+            TrackerRepository.load(key, offset, 50, callback)
+        } else {
+            DashboardApi.loadLogs(key, selectedTab, offset, 50, callback)
         }
     }
 
