@@ -46,7 +46,7 @@ jobs:
           chmod 600 "$RUNNER_TEMP/tryo-dashboard-release.jks"
           test -s "$RUNNER_TEMP/tryo-dashboard-release.jks"
       - name: Build signed release APK
-        if: github.ref == 'refs/heads/dashboard-v2'
+        if: github.ref == 'refs/heads/dashboard-v2' || github.ref == 'refs/heads/donghua-integration'
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/tryo-dashboard-release.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -58,7 +58,7 @@ jobs:
           test -n "$ANDROID_KEY_PASSWORD" || { echo "::error::ANDROID_KEY_PASSWORD belum disetel."; exit 1; }
           gradle assembleRelease
       - name: Verify APK signature and calculate SHA-256
-        if: github.ref == 'refs/heads/dashboard-v2'
+        if: github.ref == 'refs/heads/dashboard-v2' || github.ref == 'refs/heads/donghua-integration'
         id: apk
         run: |
           APK="app/build/outputs/apk/release/app-release.apk"
