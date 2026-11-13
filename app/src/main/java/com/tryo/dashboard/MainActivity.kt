@@ -290,6 +290,9 @@ class MainActivity : AppCompatActivity() {
         updateTabButtons()
         loadStatCounts()
         loadPluginManager()
+        UpdateManager.checkForUpdate(this) { update ->
+            if (update != null && !isFinishing) UpdateManager.showUpdateDialog(this, update)
+        }
     }
 
     private fun statCard(label: String, value: String): View {
