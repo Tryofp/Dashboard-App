@@ -26,6 +26,7 @@ internal data class DashboardUpdate(
 internal object UpdateManager {
     private const val MANIFEST_URL =
         "https://raw.githubusercontent.com/Tryofp/Dashboard-App/dashboard-v2/remote/update.json"
+    private const val MAX_APK_BYTES = 100L * 1024L * 1024L
     private val executor = Executors.newSingleThreadExecutor()
 
     fun checkForUpdate(activity: Activity, callback: (DashboardUpdate?) -> Unit) {
@@ -52,7 +53,7 @@ internal object UpdateManager {
                     activity.packageManager.getPackageInfo(activity.packageName, 0).versionCode.toLong()
                 }
                 if (latestCode <= currentCode || latestName.isBlank() ||
-                    !apkUrl.startsWith("https://") || !hash.matches(Regex("[a-f0-9]{64}"))
+                    !isApprovedReleaseUrl(apkUrl) || !hash.matches(Regex("[a-f0-9]{64}"))
                 ) null else DashboardUpdate(latestCode, latestName, apkUrl, hash, notes)
             } catch (_: Exception) {
                 null
@@ -89,25 +90,32 @@ internal object UpdateManager {
         Toast.makeText(activity, "Mengunduh update…", Toast.LENGTH_SHORT).show()
         executor.execute {
             var connection: HttpURLConnection? = null
+            val apk = File(File(activity.cacheDir, "updates").apply { mkdirs() }, "tryo-dashboard-update.apk")
             try {
-                connection = (URL(update.apkUrl).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 15000
-                    readTimeout = 30000
-                    instanceFollowRedirects = true
-                }
-                if (connection.responseCode !in 200..299) throw IllegalStateException("Unduhan gagal")
-                val folder = File(activity.cacheDir, "updates").apply { mkdirs() }
-                val apk = File(folder, "tryo-dashboard-update.apk")
+                connection = openApprovedDownloadConnection(update.apkUrl)
+                val declaredLength = connection.contentLengthLong
+                if (declaredLength > MAX_APK_BYTES) throw SecurityException("Ukuran APK melebihi batas yang diizinkan.")
+                val digest = MessageDigest.getInstance("SHA-256")
+                var totalBytes = 0L
                 connection.inputStream.use { input ->
-                    apk.outputStream().use { output -> input.copyTo(output) }
+                    apk.outputStream().use { output ->
+                        val buffer = ByteArray(16 * 1024)
+                        while (true) {
+                            val count = input.read(buffer)
+                            if (count < 0) break
+                            totalBytes += count
+                            if (totalBytes > MAX_APK_BYTES) throw SecurityException("Ukuran APK melebihi batas yang diizinkan.")
+                            digest.update(buffer, 0, count)
+                            output.write(buffer, 0, count)
+                        }
+                    }
                 }
-                val actualHash = MessageDigest.getInstance("SHA-256")
-                    .digest(apk.readBytes())
-                    .joinToString("") { "%02x".format(it) }
+                val actualHash = digest.digest().joinToString("") { "%02x".format(it) }
                 if (!actualHash.equals(update.sha256, ignoreCase = true)) {
                     apk.delete()
                     throw SecurityException("Verifikasi file update gagal. APK tidak dipasang.")
                 }
+                if (totalBytes == 0L) throw SecurityException("File APK kosong.")
                 activity.runOnUiThread {
                     if (activity.isFinishing || activity.isDestroyed) return@runOnUiThread
                     val uri = FileProvider.getUriForFile(
@@ -122,6 +130,7 @@ internal object UpdateManager {
                     activity.startActivity(installIntent)
                 }
             } catch (error: Exception) {
+                apk.delete()
                 activity.runOnUiThread {
                     if (!activity.isFinishing && !activity.isDestroyed) {
                         Toast.makeText(
@@ -135,5 +144,49 @@ internal object UpdateManager {
                 connection?.disconnect()
             }
         }
+    }
+
+    private fun isApprovedReleaseUrl(value: String): Boolean {
+        return try {
+            val uri = java.net.URI(value)
+            uri.scheme == "https" &&
+                uri.host.equals("github.com", ignoreCase = true) &&
+                uri.path.startsWith("/Tryofp/Dashboard-App/releases/download/") &&
+                uri.userInfo == null
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun openApprovedDownloadConnection(value: String): HttpURLConnection {
+        var currentUrl = URL(value)
+        repeat(6) { hop ->
+            val connection = (currentUrl.openConnection() as HttpURLConnection).apply {
+                connectTimeout = 15000
+                readTimeout = 30000
+                instanceFollowRedirects = false
+                setRequestProperty("User-Agent", "Tryo-Dashboard-Updater")
+                setRequestProperty("Accept", "application/vnd.android.package-archive")
+            }
+            val code = connection.responseCode
+            if (code in 200..299) return connection
+            if (code !in listOf(301, 302, 303, 307, 308)) {
+                connection.disconnect()
+                throw IllegalStateException("Unduhan gagal (HTTP $code).")
+            }
+            val location = connection.getHeaderField("Location")
+            connection.disconnect()
+            if (location.isNullOrBlank() || hop == 5) throw SecurityException("Redirect unduhan tidak valid.")
+            val next = URL(currentUrl, location)
+            val host = next.host.lowercase()
+            val approvedHost = host == "github.com" ||
+                host == "release-assets.githubusercontent.com" ||
+                host == "objects.githubusercontent.com"
+            if (next.protocol != "https" || !approvedHost || next.userInfo != null) {
+                throw SecurityException("Server pengalihan unduhan tidak diizinkan.")
+            }
+            currentUrl = next
+        }
+        throw SecurityException("Terlalu banyak pengalihan unduhan.")
     }
 }
