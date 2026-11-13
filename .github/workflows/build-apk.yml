@@ -67,30 +67,30 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK"
           HASH="$(sha256sum "$APK" | awk '{print $1}')"
           echo "sha256=$HASH" >> "$GITHUB_OUTPUT"
-      - name: Create or update 2.4.0 Release and updater manifest
+      - name: Create or update 2.5.0 Release and updater manifest
         if: github.ref == 'refs/heads/dashboard-v2'
         env:
           GH_TOKEN: ${{ github.token }}
           APK_SHA256: ${{ steps.apk.outputs.sha256 }}
         run: |
-          if ! gh release view v2.4.0 >/dev/null 2>&1; then
-            gh release create v2.4.0 --title "Tryo Dashboard 2.4.0" --target dashboard-v2 --notes "Tryo Dashboard 2.4.0 — live Plugin Manager catalog."
+          if ! gh release view v2.5.0 >/dev/null 2>&1; then
+            gh release create v2.5.0 --title "Tryo Dashboard 2.5.0" --target dashboard-v2 --notes "Tryo Dashboard 2.5.0 — live Plugin Manager catalog."
           fi
-          gh release upload v2.4.0 app/build/outputs/apk/release/app-release.apk --clobber
+          gh release upload v2.5.0 app/build/outputs/apk/release/app-release.apk --clobber
           cat > remote-update.json <<EOF
           {
-            "versionCode": 7,
-            "versionName": "2.4.0",
-            "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.4.0/app-release.apk",
+            "versionCode": 8,
+            "versionName": "2.5.0",
+            "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.5.0/app-release.apk",
             "sha256": "$APK_SHA256",
-            "releaseNotes": "Tryo Dashboard 2.4.0 — katalog Plugin Manager online."
+            "releaseNotes": "Tryo Dashboard 2.5.0 — katalog Plugin Manager online."
           }
           EOF
           CURRENT_SHA="$(gh api repos/Tryofp/Dashboard-App/contents/remote/update.json?ref=dashboard-v2 --jq .sha)"
           CONTENT="$(base64 -w 0 remote-update.json)"
           gh api repos/Tryofp/Dashboard-App/contents/remote/update.json \
             -X PUT \
-            -f message="Publish Tryo Dashboard 2.4.0 updater manifest" \
+            -f message="Publish Tryo Dashboard 2.5.0 updater manifest" \
             -f content="$CONTENT" \
             -f sha="$CURRENT_SHA" \
             -f branch="dashboard-v2"
@@ -98,7 +98,7 @@ jobs:
         if: github.ref == 'refs/heads/dashboard-v2'
         uses: actions/upload-artifact@v4
         with:
-          name: tryo-dashboard-release-2.4.0
+          name: tryo-dashboard-release-2.5.0
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30
