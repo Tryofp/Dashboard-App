@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
  */
 object RemoteModuleConfig {
     private const val MANIFEST_URL =
-        "https://raw.githubusercontent.com/Tryofp/Dashboard-App/dashboard-v2/remote/modules.json"
+        "https://raw.githubusercontent.com/Tryofp/Dashboard-App/donghua-integration/remote/modules.json"
     private val executor = Executors.newSingleThreadExecutor()
 
     data class Config(
