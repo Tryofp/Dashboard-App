@@ -74,7 +74,7 @@ jobs:
           APK_SHA256: ${{ steps.apk.outputs.sha256 }}
         run: |
           if ! gh release view v2.5.0 >/dev/null 2>&1; then
-            gh release create v2.5.0 --title "Tryo Dashboard 2.5.0" --target dashboard-v2 --notes "Tryo Dashboard 2.5.0 — live Plugin Manager catalog."
+            gh release create v2.5.0 --title "Tryo Dashboard 2.5.0" --target dashboard-v2 --notes "Tryo Dashboard 2.5.0 — perapian navigasi, pencarian Plugin Manager, dan penguatan keamanan updater."
           fi
           gh release upload v2.5.0 app/build/outputs/apk/release/app-release.apk --clobber
           cat > remote-update.json <<EOF
@@ -83,7 +83,7 @@ jobs:
             "versionName": "2.5.0",
             "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.5.0/app-release.apk",
             "sha256": "$APK_SHA256",
-            "releaseNotes": "Tryo Dashboard 2.5.0 — katalog Plugin Manager online."
+            "releaseNotes": "Tryo Dashboard 2.5.0 — navigasi lebih sederhana dan updater lebih ketat."
           }
           EOF
           CURRENT_SHA="$(gh api repos/Tryofp/Dashboard-App/contents/remote/update.json?ref=dashboard-v2 --jq .sha)"
