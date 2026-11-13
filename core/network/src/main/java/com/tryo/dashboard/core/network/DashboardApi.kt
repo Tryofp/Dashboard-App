@@ -40,7 +40,7 @@ object DashboardApi {
             JSONObject()
                 .put("Type", "DashboardDonghuaList")
                 .put("Key", key)
-                .put("ProgressType", type),
+                .put("ProgressType", if (type == "all") "" else type),
             callback
         )
     }
