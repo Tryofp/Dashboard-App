@@ -69,8 +69,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var logStatus: TextView
     private lateinit var loadMoreButton: Button
     private lateinit var managerTab: Button
-    private lateinit var trackerTab: Button
-    private lateinit var feedbackTab: Button
+    private lateinit var managerBackButton: Button
     private lateinit var usageTab: Button
     private lateinit var hubCountView: TextView
     private lateinit var feedbackCountView: TextView
@@ -249,9 +248,7 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 0, 0, dp(12))
         }
         managerTab = button("PLUGIN MANAGER")
-        trackerTab = button("Tracker")
-        feedbackTab = button("Feedback")
-        usageTab = button("USAGE")
+         usageTab = button("USAGE")
         tabs.addView(managerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(4) })
         tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(4) })
         root.addView(tabs)
@@ -264,6 +261,10 @@ class MainActivity : AppCompatActivity() {
         }
         logStatus = text("Memuat riwayat…", 12f, muted)
         toolbar.addView(logStatus, LinearLayout.LayoutParams(0, dp(38), 1f))
+        managerBackButton = button("← PLUGIN MANAGER")
+        managerBackButton.visibility = View.GONE
+        toolbar.addView(managerBackButton, LinearLayout.LayoutParams(0, dp(38), 1f).apply { marginEnd = dp(6) })
+        managerBackButton.setOnClickListener { switchTab("plugin-manager") }
         val refresh = button("Refresh")
         toolbar.addView(refresh, LinearLayout.LayoutParams(dp(88), dp(38)))
         refresh.setOnClickListener { when (selectedTab) { "usage" -> loadUsage(); "plugin-manager" -> loadPluginManager(); else -> loadLogs(true) } }
@@ -340,6 +341,9 @@ class MainActivity : AppCompatActivity() {
         if (!::managerTab.isInitialized || !::usageTab.isInitialized) return
         managerTab.background = rounded(if (selectedTab != "usage") Color.rgb(37, 99, 235) else panel, 10)
         usageTab.background = rounded(if (selectedTab == "usage") Color.rgb(37, 99, 235) else panel, 10)
+        if (::managerBackButton.isInitialized) {
+            managerBackButton.visibility = if (selectedTab == "tracker" || selectedTab == "feedback") View.VISIBLE else View.GONE
+        }
     }
 
     private fun loadPluginManager() {
@@ -388,7 +392,11 @@ class MainActivity : AppCompatActivity() {
             logContainer.removeAllViews()
         }
         loading = true
-        logStatus.text = if (reset) "Memuat data…" else "Memuat data berikutnya…"
+        logStatus.text = when (selectedTab) {
+            "tracker" -> if (reset) "Plugin Manager / Tracker • Memuat data…" else "Tracker • Memuat data berikutnya…"
+            "feedback" -> if (reset) "Plugin Manager / Feedback • Memuat data…" else "Feedback • Memuat data berikutnya…"
+            else -> if (reset) "Memuat data…" else "Memuat data berikutnya…"
+        }
         loadMoreButton.visibility = View.GONE
         val callback: (JSONObject?, String?) -> Unit = { result, error ->
             runOnUiThread {
