@@ -7,9 +7,51 @@ import android.graphics.drawable.GradientDrawable
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.view.View
+import org.json.JSONObject
 import java.util.Locale
 
 object UsageDataScreen {
+    fun render(
+        context: Context,
+        result: JSONObject,
+        panelColor: Int,
+        textColor: Int,
+        mutedColor: Int,
+        dp: (Int) -> Int,
+        formatTime: (String) -> String
+    ): List<View> {
+        val limits = result.optJSONObject("limits")
+        val views = mutableListOf<View>()
+        views.add(metricCard(context, "ESTIMATED DOCUMENT READS", result.optLong("reads", 0L), limits?.optLong("reads", 50000L) ?: 50000L, panelColor, textColor, mutedColor, dp))
+        views.add(metricCard(context, "ESTIMATED DOCUMENT WRITES", result.optLong("writes", 0L), limits?.optLong("writes", 20000L) ?: 20000L, panelColor, textColor, mutedColor, dp))
+        views.add(metricCard(context, "ESTIMATED DOCUMENT DELETES", result.optLong("deletes", 0L), limits?.optLong("deletes", 20000L) ?: 20000L, panelColor, textColor, mutedColor, dp))
+        val storage = result.optJSONObject("storage")
+        if (storage != null && storage.optBoolean("available", true)) {
+            views.add(storageCard(context, storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L, panelColor, textColor, mutedColor, dp))
+        } else {
+            views.add(TextView(context).apply {
+                text = "DATABASE STORAGE\\nTidak dihitung dalam mode estimasi aplikasi."
+                textSize = 12f
+                setTextColor(mutedColor)
+                setPadding(dp(4), dp(10), dp(4), dp(12))
+            })
+        }
+        views.add(TextView(context).apply {
+            text = "Terakhir diperbarui: " + formatTime(result.optString("updatedAt", ""))
+            textSize = 11f
+            setTextColor(mutedColor)
+            setPadding(dp(4), dp(10), dp(4), dp(3))
+        })
+        views.add(TextView(context).apply {
+            text = result.optString("note", "Metrik dapat mengalami keterlambatan.")
+            textSize = 11f
+            setTextColor(mutedColor)
+            setPadding(dp(4), dp(2), dp(4), dp(12))
+        })
+        return views
+    }
+
     fun metricCard(context: Context, label: String, used: Long, limit: Long, panelColor: Int, textColor: Int, mutedColor: Int, dp: (Int) -> Int): LinearLayout {
         val safeLimit = limit.coerceAtLeast(1L)
         val percent = ((used.toDouble() / safeLimit.toDouble()) * 100.0).toInt().coerceIn(0, 100)
