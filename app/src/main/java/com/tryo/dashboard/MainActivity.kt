@@ -392,6 +392,7 @@ class MainActivity : AppCompatActivity() {
         logStatus.text = "Pusat kontrol Dashboard"
         val cachedView = cachedPluginManagerView
         if (cachedView != null && !pluginManagerForceRefresh) {
+            (cachedView.parent as? android.view.ViewGroup)?.removeView(cachedView)
             logContainer.addView(cachedView)
             return
         }
