@@ -262,7 +262,7 @@ class MainActivity : AppCompatActivity() {
         donghuaTab = button("DONGHUA / MANHWA").apply { textSize = 9f }
         usageTab = button("USAGE").apply { textSize = 9f }
         tabs.addView(managerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(3) })
-        tabs.addView(donghuaTab, LinearLayout.LayoutParams(0, dp(44), 1.2f).apply { marginHorizontal = dp(3) })
+        tabs.addView(donghuaTab, LinearLayout.LayoutParams(0, dp(44), 1.2f).apply { marginStart = dp(3); marginEnd = dp(3) })
         tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 0.7f).apply { marginStart = dp(3) })
         root.addView(tabs)
         managerTab.setOnClickListener { switchTab("plugin-manager") }
