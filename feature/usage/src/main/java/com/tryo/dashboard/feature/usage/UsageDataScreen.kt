@@ -31,7 +31,7 @@ object UsageDataScreen {
             views.add(storageCard(context, storage.optLong("bytes", 0L), limits?.optLong("storageBytes", 1073741824L) ?: 1073741824L, panelColor, textColor, mutedColor, dp))
         } else {
             views.add(TextView(context).apply {
-                text = "DATABASE STORAGE\\nTidak dihitung dalam mode estimasi aplikasi."
+                text = "DATABASE STORAGE\nTidak dihitung dalam mode estimasi aplikasi."
                 textSize = 12f
                 setTextColor(mutedColor)
                 setPadding(dp(4), dp(10), dp(4), dp(12))
