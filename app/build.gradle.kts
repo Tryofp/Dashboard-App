@@ -48,6 +48,7 @@ dependencies {
     implementation(project(":feature:pluginmanager"))
     implementation(project(":feature:tracker"))
     implementation(project(":feature:usage"))
+    implementation(project(":feature:donghua"))
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-messaging")
     implementation("androidx.core:core-ktx:1.15.0")
