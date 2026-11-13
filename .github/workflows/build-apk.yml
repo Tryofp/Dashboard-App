@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -57,11 +57,40 @@ jobs:
           test -n "$ANDROID_KEY_ALIAS" || { echo "::error::ANDROID_KEY_ALIAS belum disetel."; exit 1; }
           test -n "$ANDROID_KEY_PASSWORD" || { echo "::error::ANDROID_KEY_PASSWORD belum disetel."; exit 1; }
           gradle assembleRelease
+      - name: Verify APK signature and calculate SHA-256
+        if: github.ref == 'refs/heads/dashboard-v2'
+        id: apk
+        run: |
+          APK="app/build/outputs/apk/release/app-release.apk"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER" || { echo "::error::apksigner not found"; exit 1; }
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          HASH="$(sha256sum "$APK" | awk '{print $1}')"
+          echo "sha256=$HASH" >> "$GITHUB_OUTPUT"
+      - name: Publish 2.3.0 GitHub Release and update updater manifest
+        if: github.ref == 'refs/heads/dashboard-v2'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_SHA256: ${{ steps.apk.outputs.sha256 }}
+        run: |
+          gh release create v2.3.0 app/build/outputs/apk/release/app-release.apk             --title "Tryo Dashboard 2.3.0"             --target dashboard-v2             --notes "Tryo Dashboard 2.3.0 — updater verification release."
+          cat > remote-update.json <<EOF
+          {
+            "versionCode": 6,
+            "versionName": "2.3.0",
+            "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.3.0/app-release.apk",
+            "sha256": "$APK_SHA256",
+            "releaseNotes": "Tryo Dashboard 2.3.0 — pengujian pembaruan otomatis."
+          }
+          EOF
+          CURRENT_SHA="$(gh api repos/Tryofp/Dashboard-App/contents/remote/update.json?ref=dashboard-v2 --jq .sha)"
+          CONTENT="$(base64 -w 0 remote-update.json)"
+          gh api repos/Tryofp/Dashboard-App/contents/remote/update.json             -X PUT             -f message="Activate updater test for Tryo Dashboard 2.3.0"             -f content="$CONTENT"             -f sha="$CURRENT_SHA"             -f branch="dashboard-v2"
       - name: Upload signed release APK artifact
         if: github.ref == 'refs/heads/dashboard-v2'
         uses: actions/upload-artifact@v4
         with:
-          name: tryo-dashboard-release-2.2.0
+          name: tryo-dashboard-release-2.3.0
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30
