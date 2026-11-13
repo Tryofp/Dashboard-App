@@ -97,7 +97,8 @@ object DonghuaScreen {
             rows.removeAllViews()
             val query = search.text?.toString()?.trim()?.lowercase().orEmpty()
             val visible = items.filter { item ->
-                (query.isEmpty() || item.title.lowercase().contains(query)) &&
+                (selectedType == "all" || item.type.equals(selectedType, true)) &&
+                    (query.isEmpty() || item.title.lowercase().contains(query)) &&
                     (selectedStatus == "Semua" || item.status.equals(selectedStatus, true))
             }
             count.text = "${visible.size} dari ${items.size} judul"
