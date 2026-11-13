@@ -1,7 +1,7 @@
 {
-  "versionCode": 8,
-  "versionName": "2.5.0",
+  "versionCode": 9,
+  "versionName": "2.6.0",
   "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.5.0/app-release.apk",
   "sha256": "97c87cdbfbae22dbf60c9499a027ae223ff798ac70fd94f8bf7e118e6598bc79",
-  "releaseNotes": "Tryo Dashboard 2.5.0 — navigasi lebih sederhana dan updater lebih ketat."
+  "releaseNotes": "Tryo Dashboard 2.6.0 — integrasi Donghua / Manhwa, sinkronisasi Firestore, dan pembaruan Dashboard."
 }
