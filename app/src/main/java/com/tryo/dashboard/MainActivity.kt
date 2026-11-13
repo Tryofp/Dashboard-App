@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     private var total = 0
     private var hasMore = false
     private var loading = false
+    private var donghuaLoading = false
     private val usageRefreshHandler = Handler(Looper.getMainLooper())
     private val usageRefreshRunnable = object : Runnable {
         override fun run() {
@@ -388,13 +389,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadDonghua() {
         val key = dashboardKey ?: return
-        loading = true
+        if (donghuaLoading) return
+        donghuaLoading = true
+        val requestedType = selectedDonghuaType
         logContainer.removeAllViews()
         loadMoreButton.visibility = View.GONE
         logStatus.text = "Menyinkronkan daftar Donghua / Manhwa…"
-        DonghuaRepository.load(key, selectedDonghuaType) { items, error ->
+        DonghuaRepository.load(key, requestedType) { items, error ->
             runOnUiThread {
-                loading = false
+                donghuaLoading = false
+                if (selectedTab != DonghuaFeature.ID) return@runOnUiThread
+                if (requestedType != selectedDonghuaType) {
+                    loadDonghua()
+                    return@runOnUiThread
+                }
                 logContainer.removeAllViews()
                 if (error != null || items == null) {
                     logStatus.text = "Sinkronisasi gagal"
@@ -403,7 +411,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 logStatus.text = "Total " + items.size + " judul"
                 logContainer.addView(DonghuaScreen.render(
-                    this, items, selectedDonghuaType, panel, white, muted, ::dp,
+                    this, items, requestedType, panel, white, muted, ::dp,
                     onTypeChange = { type -> selectedDonghuaType = type; loadDonghua() },
                     onAdd = { showProgressDialog(null) },
                     onEdit = { item -> showProgressDialog(item) },
