@@ -35,6 +35,47 @@ object DashboardApi {
         )
     }
 
+    fun loadDonghuaProgress(key: String, type: String, callback: (JSONObject?, String?) -> Unit) {
+        post(
+            JSONObject()
+                .put("Type", "DashboardDonghuaList")
+                .put("Key", key)
+                .put("ProgressType", type),
+            callback
+        )
+    }
+
+    fun saveDonghuaProgress(
+        key: String, method: String, title: String, episode: Int, type: String, status: String,
+        callback: (JSONObject?, String?) -> Unit
+    ) {
+        post(
+            JSONObject()
+                .put("Type", "DashboardDonghuaProgress")
+                .put("Key", key)
+                .put("Method", method)
+                .put("Title", title)
+                .put("Episode", episode)
+                .put("ProgressType", type)
+                .put("Status", status),
+            callback
+        )
+    }
+
+    fun deleteDonghuaProgress(
+        key: String, title: String, type: String, callback: (JSONObject?, String?) -> Unit
+    ) {
+        post(
+            JSONObject()
+                .put("Type", "DashboardDonghuaProgress")
+                .put("Key", key)
+                .put("Method", "DELETE")
+                .put("Title", title)
+                .put("ProgressType", type),
+            callback
+        )
+    }
+
     private fun post(payload: JSONObject, callback: (JSONObject?, String?) -> Unit) {
         executor.execute {
             var connection: HttpURLConnection? = null
