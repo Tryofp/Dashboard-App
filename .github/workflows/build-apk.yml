@@ -81,7 +81,7 @@ jobs:
           gh release upload v2.6.2 app/build/outputs/apk/release/app-release.apk --clobber
           cat > remote-update.json <<EOF
           {
-            "versionCode": 10,
+            "versionCode": 11,
             "versionName": "2.6.2",
             "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.6.2/app-release.apk",
             "sha256": "$APK_SHA256",
