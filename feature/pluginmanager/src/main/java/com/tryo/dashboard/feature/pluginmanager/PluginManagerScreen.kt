@@ -18,7 +18,8 @@ object PluginManagerScreen {
         panelColor: Int,
         textColor: Int,
         mutedColor: Int,
-        dp: (Int) -> Int
+        dp: (Int) -> Int,
+        onNavigate: (String) -> Unit
     ): View {
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -34,8 +35,15 @@ object PluginManagerScreen {
             setPadding(dp(4), 0, dp(4), dp(14))
         })
         content.addView(infoCard(context, "PLUGIN MANAGER", "Modul utama • status dan pembaruan plugin", panelColor, textColor, mutedColor, dp))
-        content.addView(infoCard(context, "TRACKER", "Riwayat aktivitas dan event aplikasi", panelColor, textColor, mutedColor, dp))
-        content.addView(infoCard(context, "USAGE DATA", "Estimasi operasi dan penggunaan Firestore", panelColor, textColor, mutedColor, dp))
+        content.addView(infoCard(context, "TRACKER", "Riwayat aktivitas dan event aplikasi  •  Buka", panelColor, textColor, mutedColor, dp) {
+            onNavigate("tracker")
+        })
+        content.addView(infoCard(context, "FEEDBACK", "Masukan dan penilaian pengguna  •  Buka", panelColor, textColor, mutedColor, dp) {
+            onNavigate("feedback")
+        })
+        content.addView(infoCard(context, "USAGE DATA", "Estimasi operasi dan penggunaan Firestore  •  Buka", panelColor, textColor, mutedColor, dp) {
+            onNavigate("usage")
+        })
         content.addView(text(
             context,
             "Data operasional tetap melalui Apps Script dan Firestore.",
@@ -53,7 +61,8 @@ object PluginManagerScreen {
         panelColor: Int,
         textColor: Int,
         mutedColor: Int,
-        dp: (Int) -> Int
+        dp: (Int) -> Int,
+        onClick: (() -> Unit)? = null
     ): View {
         val card = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -68,6 +77,11 @@ object PluginManagerScreen {
         }
         card.addView(text(context, title, 13f, textColor, true, dp))
         card.addView(text(context, description, 12f, mutedColor, false, dp))
+        if (onClick != null) {
+            card.isClickable = true
+            card.isFocusable = true
+            card.setOnClickListener { onClick() }
+        }
         return card
     }
 
