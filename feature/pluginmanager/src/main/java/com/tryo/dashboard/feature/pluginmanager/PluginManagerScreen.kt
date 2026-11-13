@@ -37,18 +37,6 @@ object PluginManagerScreen {
             orientation = LinearLayout.VERTICAL
         }
 
-        content.addView(text(
-            context,
-            "Selamat datang di Tryo Dashboard",
-            19f, textColor, true, dp
-        ).apply { setPadding(dp(4), dp(14), dp(4), dp(6)) })
-
-        content.addView(text(
-            context,
-            "Pilih fitur Plugin Manager atau cari skrip yang tersedia.",
-            13f, mutedColor, false, dp
-        ).apply { setPadding(dp(4), 0, dp(4), dp(10)) })
-
         // One search field only. The duplicate Semua/Plugin/Tools tab row is removed.
         val search = EditText(context).apply {
             hint = "Cari nama plugin atau file…"
