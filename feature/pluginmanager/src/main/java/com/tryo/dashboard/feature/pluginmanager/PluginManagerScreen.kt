@@ -41,9 +41,6 @@ object PluginManagerScreen {
         content.addView(infoCard(context, "FEEDBACK", "Masukan dan penilaian pengguna  •  Buka", panelColor, textColor, mutedColor, dp) {
             onNavigate("feedback")
         })
-        content.addView(infoCard(context, "USAGE DATA", "Estimasi operasi dan penggunaan Firestore  •  Buka", panelColor, textColor, mutedColor, dp) {
-            onNavigate("usage")
-        })
         content.addView(text(
             context,
             "Data operasional tetap melalui Apps Script dan Firestore.",
