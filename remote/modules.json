@@ -25,6 +25,13 @@
       "role": "feature",
       "enabled": true,
       "delivery": "native-shell"
+    },
+    {
+      "id": "donghua-manhwa",
+      "name": "Donghua / Manhwa",
+      "role": "feature",
+      "enabled": true,
+      "delivery": "native-shell"
     }
   ],
   "backend": {

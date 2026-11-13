@@ -2,6 +2,7 @@ package com.tryo.dashboard
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -37,6 +38,10 @@ import com.tryo.dashboard.feature.tracker.TrackerRepository
 import com.tryo.dashboard.feature.usage.UsageFeature
 import com.tryo.dashboard.feature.usage.UsageDataScreen
 import com.tryo.dashboard.feature.usage.UsageRepository
+import com.tryo.dashboard.feature.donghua.DonghuaFeature
+import com.tryo.dashboard.feature.donghua.DonghuaRepository
+import com.tryo.dashboard.feature.donghua.DonghuaScreen
+import com.tryo.dashboard.feature.donghua.ProgressItem
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -49,11 +54,13 @@ class MainActivity : AppCompatActivity() {
     private val white = Color.WHITE
     private var dashboardKey: String? = null
     private var selectedTab = PluginManagerFeature.ID
-    private var remoteEnabledModules = setOf(PluginManagerFeature.ID, TrackerFeature.ID, UsageFeature.ID)
+    private var remoteEnabledModules = setOf(PluginManagerFeature.ID, TrackerFeature.ID, UsageFeature.ID, DonghuaFeature.ID)
+    private var selectedDonghuaType = "donghua"
     private var offset = 0
     private var total = 0
     private var hasMore = false
     private var loading = false
+    private var donghuaLoading = false
     private val usageRefreshHandler = Handler(Looper.getMainLooper())
     private val usageRefreshRunnable = object : Runnable {
         override fun run() {
@@ -72,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var managerTab: Button
     private lateinit var managerBackButton: Button
     private lateinit var usageTab: Button
+    private lateinit var donghuaTab: Button
     private lateinit var hubCountView: TextView
     private lateinit var feedbackCountView: TextView
 
@@ -115,11 +123,14 @@ class MainActivity : AppCompatActivity() {
                 if (::managerTab.isInitialized) {
                     managerTab.visibility = if ("plugin-manager" in remoteEnabledModules) View.VISIBLE else View.GONE
                     usageTab.visibility = if ("usage-data" in remoteEnabledModules) View.VISIBLE else View.GONE
+                    donghuaTab.visibility = if (DonghuaFeature.ID in remoteEnabledModules) View.VISIBLE else View.GONE
                     if (selectedTab == "plugin-manager" && "plugin-manager" !in remoteEnabledModules) {
                         switchTab(if ("usage-data" in remoteEnabledModules) "usage" else "feedback")
                     } else if (selectedTab == "usage" && "usage-data" !in remoteEnabledModules) {
                         switchTab(if ("plugin-manager" in remoteEnabledModules) "plugin-manager" else "feedback")
                     } else if (selectedTab == "tracker" && "tracker" !in remoteEnabledModules) {
+                        switchTab("plugin-manager")
+                    } else if (selectedTab == DonghuaFeature.ID && DonghuaFeature.ID !in remoteEnabledModules) {
                         switchTab("plugin-manager")
                     }
                     updateTabButtons()
@@ -248,12 +259,15 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, 0, 0, dp(12))
         }
-        managerTab = button("PLUGIN MANAGER")
-         usageTab = button("USAGE")
-        tabs.addView(managerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(4) })
-        tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(4) })
+        managerTab = button("PLUGIN MANAGER").apply { textSize = 9f }
+        donghuaTab = button("DONGHUA / MANHWA").apply { textSize = 9f }
+        usageTab = button("USAGE").apply { textSize = 9f }
+        tabs.addView(managerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(3) })
+        tabs.addView(donghuaTab, LinearLayout.LayoutParams(0, dp(44), 1.2f).apply { marginStart = dp(3); marginEnd = dp(3) })
+        tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 0.7f).apply { marginStart = dp(3) })
         root.addView(tabs)
         managerTab.setOnClickListener { switchTab("plugin-manager") }
+        donghuaTab.setOnClickListener { switchTab(DonghuaFeature.ID) }
         usageTab.setOnClickListener { switchTab("usage") }
 
         dashboardToolbar = LinearLayout(this).apply {
@@ -268,7 +282,12 @@ class MainActivity : AppCompatActivity() {
         managerBackButton.setOnClickListener { switchTab("plugin-manager") }
         val refresh = button("Refresh")
         dashboardToolbar.addView(refresh, LinearLayout.LayoutParams(dp(88), dp(38)))
-        refresh.setOnClickListener { when (selectedTab) { "usage" -> loadUsage(); "plugin-manager" -> loadPluginManager(); else -> loadLogs(true) } }
+        refresh.setOnClickListener { when (selectedTab) {
+            "usage" -> loadUsage()
+            "plugin-manager" -> loadPluginManager()
+            DonghuaFeature.ID -> loadDonghua()
+            else -> loadLogs(true)
+        } }
         root.addView(dashboardToolbar)
 
         val scroll = ScrollView(this).apply {
@@ -336,14 +355,17 @@ class MainActivity : AppCompatActivity() {
             usageRefreshHandler.postDelayed(usageRefreshRunnable, 5 * 60 * 1000L)
         } else if (tab == "plugin-manager") {
             loadPluginManager()
+        } else if (tab == DonghuaFeature.ID) {
+            loadDonghua()
         } else {
             loadLogs(true)
         }
     }
 
     private fun updateTabButtons() {
-        if (!::managerTab.isInitialized || !::usageTab.isInitialized) return
-        managerTab.background = rounded(if (selectedTab != "usage") Color.rgb(37, 99, 235) else panel, 10)
+        if (!::managerTab.isInitialized || !::usageTab.isInitialized || !::donghuaTab.isInitialized) return
+        managerTab.background = rounded(if (selectedTab == "plugin-manager") Color.rgb(37, 99, 235) else panel, 10)
+        donghuaTab.background = rounded(if (selectedTab == DonghuaFeature.ID) Color.rgb(37, 99, 235) else panel, 10)
         usageTab.background = rounded(if (selectedTab == "usage") Color.rgb(37, 99, 235) else panel, 10)
         if (::dashboardToolbar.isInitialized) {
             dashboardToolbar.visibility = if (selectedTab == "plugin-manager") View.GONE else View.VISIBLE
@@ -363,6 +385,123 @@ class MainActivity : AppCompatActivity() {
                 switchTab(destination)
             }
         )
+    }
+
+    private fun loadDonghua() {
+        val key = dashboardKey ?: return
+        if (donghuaLoading) return
+        donghuaLoading = true
+        val requestedType = selectedDonghuaType
+        logContainer.removeAllViews()
+        loadMoreButton.visibility = View.GONE
+        logStatus.text = "Menyinkronkan daftar Donghua / Manhwa…"
+        DonghuaRepository.load(key, requestedType) { items, error ->
+            runOnUiThread {
+                donghuaLoading = false
+                if (selectedTab != DonghuaFeature.ID) return@runOnUiThread
+                if (requestedType != selectedDonghuaType) {
+                    loadDonghua()
+                    return@runOnUiThread
+                }
+                logContainer.removeAllViews()
+                if (error != null || items == null) {
+                    logStatus.text = "Sinkronisasi gagal"
+                    addEmptyState(error ?: "Tidak dapat mengambil daftar.")
+                    return@runOnUiThread
+                }
+                logStatus.text = "Total " + items.size + " judul"
+                logContainer.addView(DonghuaScreen.render(
+                    this, items, requestedType, panel, white, muted, ::dp,
+                    onTypeChange = { type -> selectedDonghuaType = type; loadDonghua() },
+                    onAdd = { showProgressDialog(null) },
+                    onEdit = { item -> showProgressDialog(item) },
+                    onDelete = { item -> confirmDeleteProgress(item) }
+                ))
+            }
+        }
+    }
+
+    private fun showProgressDialog(existing: ProgressItem?) {
+        val titleInput = EditText(this).apply {
+            hint = "Judul lengkap"
+            setText(existing?.title.orEmpty())
+            setTextColor(white)
+            setHintTextColor(muted)
+            isEnabled = existing == null
+        }
+        val episodeInput = EditText(this).apply {
+            hint = "Episode"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(existing?.episode?.toString().orEmpty())
+            setTextColor(white)
+            setHintTextColor(muted)
+        }
+        val statusInput = EditText(this).apply {
+            hint = "Status (opsional: Tamat / Bersambung)"
+            setText(existing?.status.orEmpty())
+            setTextColor(white)
+            setHintTextColor(muted)
+        }
+        val fields = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(8), dp(20), 0)
+            addView(titleInput, LinearLayout.LayoutParams(-1, dp(52)))
+            addView(episodeInput, LinearLayout.LayoutParams(-1, dp(52)))
+            addView(statusInput, LinearLayout.LayoutParams(-1, dp(52)))
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(if (existing == null) "Tambah Judul" else "Perbarui Episode")
+            .setView(fields)
+            .setNegativeButton("Batal", null)
+            .setPositiveButton(if (existing == null) "Simpan" else "Perbarui", null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val title = titleInput.text?.toString()?.trim().orEmpty()
+                val episode = episodeInput.text?.toString()?.trim()?.toIntOrNull()
+                val status = statusInput.text?.toString()?.trim().orEmpty()
+                if (title.isBlank() || episode == null || episode < 0) {
+                    Toast.makeText(this, "Judul dan episode yang valid wajib diisi.", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val key = dashboardKey ?: return@setOnClickListener
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                DonghuaRepository.save(key, if (existing == null) "POST" else "PUT", title, episode, selectedDonghuaType, status) { result, error ->
+                    runOnUiThread {
+                        if (error == null && result?.optString("status") == "success") {
+                            dialog.dismiss()
+                            Toast.makeText(this, "Progress berhasil disimpan.", Toast.LENGTH_SHORT).show()
+                            loadDonghua()
+                        } else {
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+                            Toast.makeText(this, error ?: result?.optString("message", "Gagal menyimpan.") ?: "Gagal menyimpan.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    private fun confirmDeleteProgress(item: ProgressItem) {
+        AlertDialog.Builder(this)
+            .setTitle("Hapus judul?")
+            .setMessage("Hapus " + item.title + " dari daftar?")
+            .setNegativeButton("Batal", null)
+            .setPositiveButton("Hapus") { _, _ ->
+                val key = dashboardKey ?: return@setPositiveButton
+                DonghuaRepository.delete(key, item.title, selectedDonghuaType) { result, error ->
+                    runOnUiThread {
+                        if (error == null && result?.optString("status") == "success") {
+                            Toast.makeText(this, "Judul berhasil dihapus.", Toast.LENGTH_SHORT).show()
+                            loadDonghua()
+                        } else {
+                            Toast.makeText(this, error ?: result?.optString("message", "Gagal menghapus.") ?: "Gagal menghapus.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+            .show()
     }
 
     private fun loadUsage() {

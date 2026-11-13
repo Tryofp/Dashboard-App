@@ -4,4 +4,4 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = "DashboardApp"
-include(":app", ":core:network", ":core:security", ":core:notifications", ":feature:pluginmanager", ":feature:tracker", ":feature:usage")
+include(":app", ":core:network", ":core:security", ":core:notifications", ":feature:pluginmanager", ":feature:tracker", ":feature:usage", ":feature:donghua")

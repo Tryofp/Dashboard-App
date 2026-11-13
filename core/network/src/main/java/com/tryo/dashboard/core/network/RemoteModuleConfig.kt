@@ -6,7 +6,7 @@ import java.net.URL
 import java.util.concurrent.Executors
 
 /**
- * Fetches the reviewed, versioned module manifest from the beta branch.
+ * Fetches the reviewed, versioned module manifest from the dashboard-v2 branch.
  * Failure is non-fatal: callers retain the built-in safe defaults.
  */
 object RemoteModuleConfig {
