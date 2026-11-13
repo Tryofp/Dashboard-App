@@ -1,7 +1,7 @@
 {
-  "versionCode": 5,
-  "versionName": "2.2.0",
-  "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.2.0/app-release.apk",
-  "sha256": "22191eb66ceba08519f0797d6d057552878c4dd36308417f0c4b53341f0ae402",
-  "releaseNotes": "Tryo Dashboard 2.2.0 — signed release build."
+  "versionCode": 6,
+  "versionName": "2.3.0",
+  "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.3.0/app-release.apk",
+  "sha256": "2bc1be610d1a6da261d95d75442cfd7829a237fc2fc5ac6e67ec43b643947a4c",
+  "releaseNotes": "Tryo Dashboard 2.3.0 — pengujian pembaruan otomatis."
 }
