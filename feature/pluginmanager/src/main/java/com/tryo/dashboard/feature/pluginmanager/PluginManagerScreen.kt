@@ -21,7 +21,7 @@ import android.text.TextWatcher
 
 /**
  * Plugin Manager home and live read-only catalog.
- * The app lists the public Lua files and exposes their source URLs; it does not
+ * The app lists public Lua files and exposes their source URLs; it does not
  * pretend to toggle scripts inside an Infinite Yield runtime it cannot control.
  */
 object PluginManagerScreen {
@@ -36,14 +36,48 @@ object PluginManagerScreen {
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
         }
-        content.addView(text(context, "Selamat datang di Tryo Dashboard", 19f, textColor, true, dp).apply {
-            setPadding(dp(4), dp(14), dp(4), dp(6))
-        })
+
         content.addView(text(
             context,
-            "Kelola katalog skrip Plugin Manager dan akses fitur dashboard.",
+            "Selamat datang di Tryo Dashboard",
+            19f, textColor, true, dp
+        ).apply { setPadding(dp(4), dp(14), dp(4), dp(6)) })
+
+        content.addView(text(
+            context,
+            "Pilih fitur Plugin Manager atau cari skrip yang tersedia.",
             13f, mutedColor, false, dp
-        ).apply { setPadding(dp(4), 0, dp(4), dp(12)) })
+        ).apply { setPadding(dp(4), 0, dp(4), dp(10)) })
+
+        // One search field only. The duplicate Semua/Plugin/Tools tab row is removed.
+        val search = EditText(context).apply {
+            hint = "Cari nama plugin atau file…"
+            textSize = 13f
+            setSingleLine(true)
+            setTextColor(textColor)
+            setHintTextColor(mutedColor)
+            setPadding(dp(12), dp(8), dp(12), dp(8))
+            background = rounded(panelColor, dp(10))
+        }
+        content.addView(search, LinearLayout.LayoutParams(-1, dp(46)).apply {
+            bottomMargin = dp(12)
+        })
+
+        val featureHeader = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        featureHeader.addView(text(context, "FITUR", 14f, textColor, true, dp))
+        content.addView(featureHeader)
+
+        content.addView(infoCard(
+            context, "TRACKER", "Riwayat aktivitas dan event aplikasi • Buka",
+            panelColor, textColor, mutedColor, dp
+        ) { onNavigate("tracker") })
+        content.addView(infoCard(
+            context, "FEEDBACK", "Masukan dan penilaian pengguna • Buka",
+            panelColor, textColor, mutedColor, dp
+        ) { onNavigate("feedback") })
 
         val catalogHeader = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -60,43 +94,20 @@ object PluginManagerScreen {
         }
         content.addView(status)
 
-        val search = EditText(context).apply {
-            hint = "Cari nama plugin atau file…"
-            textSize = 13f
-            setSingleLine(true)
-            setTextColor(textColor)
-            setHintTextColor(mutedColor)
-            setPadding(dp(12), dp(8), dp(12), dp(8))
-            background = rounded(panelColor, dp(10))
-        }
-        content.addView(search, LinearLayout.LayoutParams(-1, dp(46)).apply {
-            bottomMargin = dp(8)
-        })
-
-        val filterRow = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
         val listContainer = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
         }
+        content.addView(listContainer)
+
         var allEntries: List<PluginCatalogEntry> = emptyList()
-        var selectedCategory = "Semua"
-        val filterButtons = linkedMapOf<String, Button>()
 
         fun renderEntries() {
-            filterButtons.forEach { (label, button) ->
-                button.background = rounded(
-                    if (selectedCategory == label) 0xFF2563EB.toInt() else panelColor,
-                    dp(9)
-                )
-            }
             listContainer.removeAllViews()
             val query = search.text?.toString()?.trim()?.lowercase().orEmpty()
             val filtered = allEntries.filter { entry ->
-                (selectedCategory == "Semua" || entry.category == selectedCategory) &&
-                    (query.isEmpty() || entry.name.lowercase().contains(query) ||
-                        entry.path.lowercase().contains(query))
+                query.isEmpty() || entry.name.lowercase().contains(query) ||
+                    entry.path.lowercase().contains(query) ||
+                    entry.category.lowercase().contains(query)
             }
             if (filtered.isEmpty()) {
                 listContainer.addView(text(
@@ -115,22 +126,6 @@ object PluginManagerScreen {
                 ))
             }
         }
-
-        listOf("Semua", "Plugin", "Tools").forEach { label ->
-            val filter = actionButton(context, label, dp)
-            filterButtons[label] = filter
-            filter.setOnClickListener {
-                selectedCategory = label
-                renderEntries()
-            }
-            filterRow.addView(filter, LinearLayout.LayoutParams(0, dp(38), 1f).apply {
-                if (label != "Tools") marginEnd = dp(6)
-            })
-        }
-        content.addView(filterRow, LinearLayout.LayoutParams(-1, -2).apply {
-            bottomMargin = dp(10)
-        })
-        content.addView(listContainer)
 
         search.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -175,14 +170,6 @@ object PluginManagerScreen {
             11f, mutedColor, false, dp
         ).apply { setPadding(dp(4), dp(10), dp(4), dp(14)) })
 
-        content.addView(infoCard(
-            context, "TRACKER", "Riwayat aktivitas dan event aplikasi • Buka",
-            panelColor, textColor, mutedColor, dp
-        ) { onNavigate("tracker") })
-        content.addView(infoCard(
-            context, "FEEDBACK", "Masukan dan penilaian pengguna • Buka",
-            panelColor, textColor, mutedColor, dp
-        ) { onNavigate("feedback") })
         content.addView(text(
             context,
             "Data operasional tetap melalui Apps Script dan Firestore.",
