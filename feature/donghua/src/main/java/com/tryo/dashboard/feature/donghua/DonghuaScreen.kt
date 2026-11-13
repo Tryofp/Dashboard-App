@@ -52,7 +52,7 @@ object DonghuaScreen {
         category.addView(categoryButton("Semua", "all"),
             LinearLayout.LayoutParams(0, dp(40), 1f).apply { marginEnd = dp(4) })
         category.addView(categoryButton("Donghua", "donghua"),
-            LinearLayout.LayoutParams(0, dp(40), 1f).apply { marginHorizontal = dp(4) })
+            LinearLayout.LayoutParams(0, dp(40), 1f).apply { marginStart = dp(4); marginEnd = dp(4) })
         category.addView(categoryButton("Manhwa", "manhwa"),
             LinearLayout.LayoutParams(0, dp(40), 1f).apply { marginStart = dp(4) })
         content.addView(category)
