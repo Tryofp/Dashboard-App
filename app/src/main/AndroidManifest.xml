@@ -4,11 +4,20 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:allowBackup="false"
-        android:label="Dashboard App"
+        android:label="Tryo Dashboard"
         android:icon="@drawable/tryo_launcher"
         android:roundIcon="@drawable/tryo_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="tryo_updates" />
