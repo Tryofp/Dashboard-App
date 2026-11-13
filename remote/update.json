@@ -1,7 +1,7 @@
 {
-  "versionCode": 6,
-  "versionName": "2.3.0",
-  "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.3.0/app-release.apk",
-  "sha256": "781e752dbe0c1ed8773fcf0b7e624627aa06edeee30f7fc89adabe197d5e2d5f",
-  "releaseNotes": "Tryo Dashboard 2.3.0 — pengujian pembaruan otomatis."
+  "versionCode": 7,
+  "versionName": "2.4.0",
+  "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.4.0/app-release.apk",
+  "sha256": "0950df1793f6ce0cb5b8dfb3ab61408ae64d58d0830e8566ac50b953ce2b922c",
+  "releaseNotes": "Tryo Dashboard 2.4.0 — katalog Plugin Manager online."
 }
