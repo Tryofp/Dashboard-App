@@ -93,7 +93,7 @@ internal object UpdateManager {
             val apk = File(File(activity.cacheDir, "updates").apply { mkdirs() }, "tryo-dashboard-update.apk")
             try {
                 connection = openApprovedDownloadConnection(update.apkUrl)
-                val declaredLength = connection.contentLengthLong
+                val declaredLength = connection.contentLength.toLong()
                 if (declaredLength > MAX_APK_BYTES) throw SecurityException("Ukuran APK melebihi batas yang diizinkan.")
                 val digest = MessageDigest.getInstance("SHA-256")
                 var totalBytes = 0L
