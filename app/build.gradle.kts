@@ -3,6 +3,9 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
 }
+
+val releaseKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+
 android {
     namespace = "com.tryo.dashboard"
     compileSdk = 35
@@ -10,8 +13,26 @@ android {
         applicationId = "com.tryo.dashboard"
         minSdk = 23
         targetSdk = 35
-        versionCode = 4
-        versionName = "2.1.0"
+        versionCode = 5
+        versionName = "2.2.0"
+    }
+    signingConfigs {
+        if (!releaseKeystorePath.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(releaseKeystorePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+            if (!releaseKeystorePath.isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -19,6 +40,7 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
 }
+
 dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:security"))
