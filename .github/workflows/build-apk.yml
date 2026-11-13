@@ -67,13 +67,13 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK"
           HASH="$(sha256sum "$APK" | awk '{print $1}')"
           echo "sha256=$HASH" >> "$GITHUB_OUTPUT"
-      - name: Publish 2.3.0 GitHub Release and update updater manifest
+      - name: Upload APK to existing 2.3.0 Release and update updater manifest
         if: github.ref == 'refs/heads/dashboard-v2'
         env:
           GH_TOKEN: ${{ github.token }}
           APK_SHA256: ${{ steps.apk.outputs.sha256 }}
         run: |
-          gh release create v2.3.0 app/build/outputs/apk/release/app-release.apk             --title "Tryo Dashboard 2.3.0"             --target dashboard-v2             --notes "Tryo Dashboard 2.3.0 — updater verification release."
+          gh release upload v2.3.0 app/build/outputs/apk/release/app-release.apk --clobber
           cat > remote-update.json <<EOF
           {
             "versionCode": 6,
