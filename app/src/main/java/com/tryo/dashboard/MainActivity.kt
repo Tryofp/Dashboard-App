@@ -112,22 +112,15 @@ class MainActivity : AppCompatActivity() {
                     return@runOnUiThread
                 }
                 remoteEnabledModules = config.enabledModules
-                if (::trackerTab.isInitialized) {
+                if (::managerTab.isInitialized) {
                     managerTab.visibility = if ("plugin-manager" in remoteEnabledModules) View.VISIBLE else View.GONE
-                    trackerTab.visibility = if ("tracker" in remoteEnabledModules) View.VISIBLE else View.GONE
                     usageTab.visibility = if ("usage-data" in remoteEnabledModules) View.VISIBLE else View.GONE
                     if (selectedTab == "plugin-manager" && "plugin-manager" !in remoteEnabledModules) {
-                        switchTab(if ("tracker" in remoteEnabledModules) "tracker" else "feedback")
-                    } else if (selectedTab == "tracker" && "tracker" !in remoteEnabledModules) {
-                        switchTab(if ("plugin-manager" in remoteEnabledModules) "plugin-manager" else "feedback")
+                        switchTab(if ("usage-data" in remoteEnabledModules) "usage" else "feedback")
                     } else if (selectedTab == "usage" && "usage-data" !in remoteEnabledModules) {
-                        switchTab(
-                            when {
-                                "plugin-manager" in remoteEnabledModules -> "plugin-manager"
-                                "tracker" in remoteEnabledModules -> "tracker"
-                                else -> "feedback"
-                            }
-                        )
+                        switchTab(if ("plugin-manager" in remoteEnabledModules) "plugin-manager" else "feedback")
+                    } else if (selectedTab == "tracker" && "tracker" !in remoteEnabledModules) {
+                        switchTab("plugin-manager")
                     }
                     updateTabButtons()
                 }
@@ -255,18 +248,14 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, 0, 0, dp(12))
         }
-        managerTab = button("Plugin Manager")
+        managerTab = button("PLUGIN MANAGER")
         trackerTab = button("Tracker")
         feedbackTab = button("Feedback")
-        usageTab = button("Usage")
-        tabs.addView(managerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(2) })
-        tabs.addView(trackerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(2); marginEnd = dp(2) })
-        tabs.addView(feedbackTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(2); marginEnd = dp(2) })
-        tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(2) })
+        usageTab = button("USAGE")
+        tabs.addView(managerTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginEnd = dp(4) })
+        tabs.addView(usageTab, LinearLayout.LayoutParams(0, dp(44), 1f).apply { marginStart = dp(4) })
         root.addView(tabs)
         managerTab.setOnClickListener { switchTab("plugin-manager") }
-        trackerTab.setOnClickListener { switchTab("tracker") }
-        feedbackTab.setOnClickListener { switchTab("feedback") }
         usageTab.setOnClickListener { switchTab("usage") }
 
         val toolbar = LinearLayout(this).apply {
@@ -348,10 +337,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTabButtons() {
-        if (!::managerTab.isInitialized || !::trackerTab.isInitialized || !::feedbackTab.isInitialized || !::usageTab.isInitialized) return
-        managerTab.background = rounded(if (selectedTab == "plugin-manager") Color.rgb(37, 99, 235) else panel, 10)
-        trackerTab.background = rounded(if (selectedTab == "tracker") Color.rgb(37, 99, 235) else panel, 10)
-        feedbackTab.background = rounded(if (selectedTab == "feedback") Color.rgb(37, 99, 235) else panel, 10)
+        if (!::managerTab.isInitialized || !::usageTab.isInitialized) return
+        managerTab.background = rounded(if (selectedTab != "usage") Color.rgb(37, 99, 235) else panel, 10)
         usageTab.background = rounded(if (selectedTab == "usage") Color.rgb(37, 99, 235) else panel, 10)
     }
 
@@ -361,7 +348,9 @@ class MainActivity : AppCompatActivity() {
         loadMoreButton.visibility = View.GONE
         logStatus.text = "Pusat kontrol Dashboard"
         logContainer.addView(
-            PluginManagerScreen.create(this, panel, white, muted, ::dp)
+            PluginManagerScreen.create(this, panel, white, muted, ::dp) { destination ->
+                switchTab(destination)
+            }
         )
     }
 
