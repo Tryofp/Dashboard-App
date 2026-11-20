@@ -69,30 +69,30 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$APK"
           HASH="$(sha256sum "$APK" | awk '{print $1}')"
           echo "sha256=$HASH" >> "$GITHUB_OUTPUT"
-      - name: Create or update 2.6.5 Release and updater manifest
+      - name: Create or update 2.6.6 Release and updater manifest
         if: github.ref == 'refs/heads/dashboard-v2'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APK_SHA256: ${{ steps.apk.outputs.sha256 }}
         run: |
-          if ! gh release view v2.6.5 >/dev/null 2>&1; then
-            gh release create v2.6.5 --title "Tryo Dashboard 2.6.5" --target dashboard-v2 --notes "Tryo Dashboard 2.6.5 — integrasi Donghua / Manhwa, sinkronisasi Firestore, dan perbaikan in-app updater."
+          if ! gh release view v2.6.6 >/dev/null 2>&1; then
+            gh release create v2.6.6 --title "Tryo Dashboard 2.6.6" --target dashboard-v2 --notes "Tryo Dashboard 2.6.6 — perbaikan registrasi notifikasi FCM dan pembaruan in-app."
           fi
-          gh release upload v2.6.5 app/build/outputs/apk/release/app-release.apk --clobber
+          gh release upload v2.6.6 app/build/outputs/apk/release/app-release.apk --clobber
           cat > remote-update.json <<EOF
           {
-            "versionCode": 14,
-            "versionName": "2.6.5",
-            "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.6.5/app-release.apk",
+            "versionCode": 15,
+            "versionName": "2.6.6",
+            "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.6.6/app-release.apk",
             "sha256": "$APK_SHA256",
-            "releaseNotes": "Tryo Dashboard 2.6.5 — integrasi Donghua / Manhwa, sinkronisasi Firestore, dan perbaikan in-app updater."
+            "releaseNotes": "Tryo Dashboard 2.6.6 — perbaikan registrasi notifikasi FCM dan pembaruan in-app."
           }
           EOF
           CURRENT_SHA="$(gh api repos/Tryofp/Dashboard-App/contents/remote/update.json?ref=dashboard-v2 --jq .sha)"
           CONTENT="$(base64 -w 0 remote-update.json)"
           gh api repos/Tryofp/Dashboard-App/contents/remote/update.json \
             -X PUT \
-            -f message="Publish Tryo Dashboard 2.6.5 updater manifest" \
+            -f message="Publish Tryo Dashboard 2.6.6 updater manifest" \
             -f content="$CONTENT" \
             -f sha="$CURRENT_SHA" \
             -f branch="dashboard-v2"
@@ -100,7 +100,7 @@ jobs:
         if: github.ref == 'refs/heads/dashboard-v2'
         uses: actions/upload-artifact@v4
         with:
-          name: tryo-dashboard-release-2.6.5
+          name: tryo-dashboard-release-2.6.6
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30
