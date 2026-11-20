@@ -2,6 +2,6 @@
   "versionCode": 14,
   "versionName": "2.6.5",
   "apkUrl": "https://github.com/Tryofp/Dashboard-App/releases/download/v2.6.5/app-release.apk",
-  "sha256": "ac195a8e1cb63efe7b8c942a089a0de42a9cac96688219e61bf3bbdfea0a15ea",
+  "sha256": "c41fff7db5e0ec6421d899bf5311be3c406562abfb9ec472dbe82383f00eaa5d",
   "releaseNotes": "Tryo Dashboard 2.6.5 — integrasi Donghua / Manhwa, sinkronisasi Firestore, dan perbaikan in-app updater."
 }
