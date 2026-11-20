@@ -13,8 +13,8 @@ android {
         applicationId = "com.tryo.dashboard"
         minSdk = 23
         targetSdk = 35
-        versionCode = 14
-        versionName = "2.6.5"
+        versionCode = 15
+        versionName = "2.6.6"
     }
     signingConfigs {
         if (!releaseKeystorePath.isNullOrBlank()) {
